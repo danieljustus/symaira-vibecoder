@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func testCfg() *Config {
 	return &Config{
@@ -65,5 +68,28 @@ func TestFallbackChainWalk(t *testing.T) {
 	}
 	if _, ok := NextAttempt(s3, rm); ok {
 		t.Fatal("chain should be exhausted after 3 attempts")
+	}
+}
+
+func TestConfigValidateRequiresLoopbackServerHost(t *testing.T) {
+	for _, tc := range []struct {
+		host string
+		want bool
+	}{
+		{"127.0.0.1", true},
+		{"::1", true},
+		{"0.0.0.0", false},
+		{"192.168.1.10", false},
+		{"", false},
+	} {
+		cfg := Default()
+		cfg.Server.Host = tc.host
+		err := cfg.Validate()
+		if tc.want && err != nil {
+			t.Errorf("host %q rejected: %v", tc.host, err)
+		}
+		if !tc.want && (err == nil || !strings.Contains(err.Error(), "loopback")) {
+			t.Errorf("host %q error = %v, want loopback rejection", tc.host, err)
+		}
 	}
 }

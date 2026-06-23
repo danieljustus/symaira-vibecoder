@@ -46,6 +46,9 @@ func serveCmd() *cobra.Command {
 			if noOpen {
 				cfg.Server.OpenBrowser = false
 			}
+			if err := cfg.Validate(); err != nil {
+				return err
+			}
 
 			res := config.NewResolver(cfg)
 			run := runner.NewOpenCodeRunner(cfg.Runner.OpencodeBin, cfg.Runner.RequestTimeout.Std())
@@ -53,7 +56,7 @@ func serveCmd() *cobra.Command {
 			eng := engine.New(cfg, res, run, bus)
 			srv := server.New(cfg, eng, web.DistFS())
 
-			addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+			addr := net.JoinHostPort(cfg.Server.Host, fmt.Sprintf("%d", cfg.Server.Port))
 			ln, err := net.Listen("tcp", addr)
 			if err != nil {
 				return fmt.Errorf("listen on %s: %w", addr, err)
