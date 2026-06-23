@@ -122,6 +122,9 @@ func (s StepStatus) IsHalting() bool {
 // LoadCycle reads a cycle by id from the data dir. If it does not exist and id
 // is the seed name, it materializes the embedded seed first.
 func LoadCycle(id string) (*Cycle, error) {
+	if err := validateCycleID(id); err != nil {
+		return nil, err
+	}
 	path := filepath.Join(CyclesDir(), id+".toml")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if id == SeedCycleName {
@@ -145,8 +148,8 @@ func LoadCycle(id string) (*Cycle, error) {
 
 // SaveCycle atomically writes a cycle back to the data dir (GUI edit path).
 func SaveCycle(c *Cycle) error {
-	if c.ID == "" {
-		return fmt.Errorf("save cycle: empty id")
+	if err := validateCycleID(c.ID); err != nil {
+		return err
 	}
 	if err := os.MkdirAll(CyclesDir(), 0o755); err != nil {
 		return err
@@ -165,6 +168,18 @@ func SaveCycle(c *Cycle) error {
 		return err
 	}
 	return os.Rename(tmp, path) // atomic replace
+}
+
+func validateCycleID(id string) error {
+	if id == "" {
+		return fmt.Errorf("cycle: empty id")
+	}
+	for _, r := range id {
+		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_') {
+			return fmt.Errorf("cycle: invalid id %q", id)
+		}
+	}
+	return nil
 }
 
 // materializeSeed copies the embedded seed Baukasten to the data dir on first run.
