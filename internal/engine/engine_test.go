@@ -25,6 +25,14 @@ func (r *countingRunner) RunStep(context.Context, runner.StepRequest) (<-chan ru
 	return nil, errors.New("runner should not start")
 }
 
+func (r *countingRunner) successfulRun(context.Context, runner.StepRequest) (<-chan runner.RunEvent, error) {
+	r.calls++
+	ch := make(chan runner.RunEvent, 1)
+	ch <- runner.RunEvent{Kind: runner.EventDone}
+	close(ch)
+	return ch, nil
+}
+
 type cancellingRunner struct {
 	started chan struct{}
 }
@@ -109,4 +117,48 @@ func TestStartCycleDoesNotRunStepWhenInProgressStatusCannotPersist(t *testing.T)
 	if run.calls != 0 {
 		t.Fatalf("runner started %d times after persistence failure", run.calls)
 	}
+}
+
+func TestStartCycleStopsWhenDoneStatusCannotPersist(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	cfg := config.Default()
+	cfg.Defaults.Cycle = "terminal-persistence-test"
+	if err := config.SaveCycle(&config.Cycle{ID: cfg.Defaults.Cycle, Phases: []config.Phase{{
+		ID: "phase", Steps: []config.Step{{ID: "one", Enabled: true}, {ID: "two", Enabled: true}},
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+
+	run := &countingRunner{}
+	eng := New(cfg, config.NewResolver(cfg), runnerFunc(run.successfulRun), NewBus())
+	saves := 0
+	eng.saveCycle = func(*config.Cycle) error {
+		saves++
+		if saves == 2 {
+			return errors.New("disk unavailable")
+		}
+		return nil
+	}
+	if _, err := eng.StartCycle(); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(time.Second)
+	for eng.State().State != "idle" && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	if run.calls != 1 {
+		t.Fatalf("runner started %d times after terminal persistence failure, want 1", run.calls)
+	}
+}
+
+type runnerFunc func(context.Context, runner.StepRequest) (<-chan runner.RunEvent, error)
+
+func (f runnerFunc) Name() string { return "test" }
+
+func (f runnerFunc) Available(context.Context) (bool, runner.Info) {
+	return true, runner.Info{Name: "test"}
+}
+
+func (f runnerFunc) RunStep(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
+	return f(ctx, req)
 }

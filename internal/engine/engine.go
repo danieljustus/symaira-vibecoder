@@ -276,7 +276,9 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		}
 
 		if doneErr == "" {
-			e.setStatus(cycle, step, config.StatusDone, runID)
+			if err := e.setStatus(cycle, step, config.StatusDone, runID); err != nil {
+				return config.StatusFailed
+			}
 			e.log(runID, step.ID, "log", "✓ "+step.Name)
 			return config.StatusDone
 		}
