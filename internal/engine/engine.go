@@ -34,10 +34,11 @@ type RunState struct {
 // Engine orchestrates runs over a single shared working tree (steps are
 // strictly sequential in the MVP).
 type Engine struct {
-	cfg *config.Config
-	res *config.Resolver
-	run runner.Runner
-	bus *Bus
+	cfg       *config.Config
+	res       *config.Resolver
+	run       runner.Runner
+	bus       *Bus
+	saveCycle func(*config.Cycle) error
 
 	mu       sync.Mutex
 	running  bool
@@ -51,7 +52,7 @@ type Engine struct {
 // New builds an engine. It constructs even when the runner is unavailable; only
 // starting a run then fails, keeping the board usable read-only.
 func New(cfg *config.Config, res *config.Resolver, run runner.Runner, bus *Bus) *Engine {
-	return &Engine{cfg: cfg, res: res, run: run, bus: bus}
+	return &Engine{cfg: cfg, res: res, run: run, bus: bus, saveCycle: config.SaveCycle}
 }
 
 // Bus exposes the event bus for the SSE handler.
@@ -110,7 +111,10 @@ func (e *Engine) StartCycle() (string, error) {
 			return
 		}
 		if n := cycle.ResetStuck(); n > 0 {
-			_ = config.SaveCycle(cycle)
+			if err := e.saveCycle(cycle); err != nil {
+				e.bus.Publish(Event{Type: "error", RunID: runID, Line: "persist reset: " + err.Error()})
+				return
+			}
 		}
 		for {
 			if ctx.Err() != nil || e.isPaused() {
@@ -220,7 +224,9 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	}
 
 	// 2) Mark running.
-	e.setStatus(cycle, step, config.StatusInProgress, runID)
+	if err := e.setStatus(cycle, step, config.StatusInProgress, runID); err != nil {
+		return config.StatusFailed
+	}
 
 	// 3) Resolve model (override > category > default).
 	spec, rm, err := e.res.BuildRunSpec(*step, dir)
@@ -277,9 +283,9 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 
 		// Failed. Do not retry on engine-level cancel/timeout.
 		if ctx.Err() != nil {
-			e.setStatus(cycle, step, config.StatusFailed, runID)
-			e.log(runID, step.ID, "error", doneErr)
-			return config.StatusFailed
+			e.setStatus(cycle, step, config.StatusPending, runID)
+			e.log(runID, step.ID, "log", "cancelled — step reset to pending")
+			return config.StatusPending
 		}
 		next, ok := config.NextAttempt(spec, rm)
 		if !ok {
@@ -307,15 +313,17 @@ func composeMessage(s config.Step) string {
 	return suffix
 }
 
-func (e *Engine) setStatus(cycle *config.Cycle, step *config.Step, to config.StepStatus, runID string) {
+func (e *Engine) setStatus(cycle *config.Cycle, step *config.Step, to config.StepStatus, runID string) error {
 	if !canTransition(step.Status, to) {
 		e.log(runID, step.ID, "log", "warning: irregular transition "+string(step.Status.Effective())+"->"+string(to))
 	}
 	step.Status = to
-	if err := config.SaveCycle(cycle); err != nil {
+	if err := e.saveCycle(cycle); err != nil {
 		e.bus.Publish(Event{Type: "error", RunID: runID, StepID: step.ID, Line: "persist: " + err.Error()})
+		return err
 	}
 	e.bus.Publish(Event{Type: "step_status", RunID: runID, StepID: step.ID, Status: string(to)})
+	return nil
 }
 
 func (e *Engine) log(runID, stepID, kind, line string) {
