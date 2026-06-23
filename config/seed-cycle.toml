@@ -1,0 +1,252 @@
+# Default Baukasten ("cycle") seeded from docs/Grundidee.csv.
+#
+# On first run symvibe copies this into
+#   ~/.local/share/symvibe/cycles/default.toml
+# After that the USER'S copy is authoritative — this seed is never overwritten.
+# Edits in the GUI (add/remove/reorder/skip/override) mutate the data-dir copy.
+#
+# Each step is pre-bound to:
+#   - skill: the opencode skill command (folder name under
+#            ~/.config/opencode/skills/<skill>/SKILL.md), invoked via
+#            `opencode run --command <skill>` (alias `$skill` / `/skill`).
+#   - category: which model binding drives it (see [categories] in config.toml).
+#   - agent (optional): opencode agent override for this step.
+# A step MAY carry a per-step model override under [steps.model_override]
+# (see step 2.3 below for the shape); that beats the category binding.
+
+schema_version = 1
+id = "default"
+name = "Standard Vibe Cycle"
+description = "8-Phasen-Zyklus: Cleaning -> Code Review -> Planung -> Coden -> PR-Check -> GH Alerts -> Pre-Release -> Release."
+
+# ============================ 1. Cleaning ====================================
+[[phases]]
+id = "p1"
+name = "Cleaning"
+order = 1
+
+  [[phases.steps]]
+  id = "1.1"
+  name = "Branch"
+  order = 1
+  skill = "00-sync"
+  category = "git"
+  enabled = true
+
+  [[phases.steps]]
+  id = "1.2"
+  name = "Commits"
+  order = 2
+  skill = "commit"
+  category = "git"
+  enabled = true
+
+# ============================ 2. Code Review =================================
+[[phases]]
+id = "p2"
+name = "Code Review"
+order = 2
+
+  [[phases.steps]]
+  id = "2.1"
+  name = "Quality"
+  order = 1
+  skill = "01-code-review"
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.2"
+  name = "Simplify"
+  order = 2
+  skill = "simplify"
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.3"
+  name = "Security"
+  order = 3
+  skill = "01-code-review"      # review skill, security-focused prompt
+  prompt_suffix = "Focus exclusively on security: authn/z, injection, secrets, supply chain."
+  category = "ultrabrain"
+  enabled = true
+    # Example per-STEP model override — beats the category binding above.
+    [phases.steps.model_override]
+    id = "opencode-go/mimo-v2.5"
+    temperature = 0.1
+    variant = "max"
+    fallback_models = ["opencode-go/qwen3.7-plus"]
+
+  [[phases.steps]]
+  id = "2.4"
+  name = "UI/UX"
+  order = 4
+  skill = "01-code-review"
+  prompt_suffix = "Focus on UI/UX and accessibility of any user-facing surface."
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.5"
+  name = "Performance"
+  order = 5
+  skill = "01-code-review"
+  prompt_suffix = "Focus on performance: hot paths, allocations, N+1, complexity."
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.6"
+  name = "remove AI Slop"
+  order = 6
+  skill = "simplify"
+  prompt_suffix = "Remove AI slop: dead code, redundant comments, over-abstraction, filler."
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.7"
+  name = "Debugging / bug hunt"
+  order = 7
+  skill = "01-code-review"
+  prompt_suffix = "Hunt for correctness bugs and logic errors in the recent diff."
+  category = "ultrabrain"
+  enabled = true
+
+  [[phases.steps]]
+  id = "2.8"
+  name = "Test Coverage"
+  order = 8
+  skill = "test-coverage"
+  category = "deep"
+  enabled = true
+
+# ============================ 3. Planung =====================================
+[[phases]]
+id = "p3"
+name = "Planung"
+order = 3
+
+  [[phases.steps]]
+  id = "3.1"
+  name = "Issues"
+  order = 1
+  skill = "02-gh-plan"
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "3.2"
+  name = "Milestones"
+  order = 2
+  skill = "02-gh-plan"
+  prompt_suffix = "Plan and adjust release milestones."
+  category = "deep"
+  enabled = true
+
+  [[phases.steps]]
+  id = "3.3"
+  name = "Project"
+  order = 3
+  skill = "02-gh-plan"
+  prompt_suffix = "Update the GitHub Project board / iteration."
+  category = "deep"
+  enabled = true
+
+# ===================== 4. Coden / Umsetzung der Planung ======================
+[[phases]]
+id = "p4"
+name = "Coden/Umsetzung"
+order = 4
+
+  [[phases.steps]]
+  id = "4.1"
+  name = "Issues"
+  order = 1
+  skill = "03-gh-go"
+  category = "ultrabrain"
+  agent = "sisyphus"
+  enabled = true
+    # Autonomy: skip implementing issues when there are none open.
+    [phases.steps.auto_skip]
+    sensor = "open-issues"
+    when = "==0"
+
+  [[phases.steps]]
+  id = "4.2"
+  name = "Commit"
+  order = 2
+  skill = "commit"
+  category = "git"
+  enabled = true
+
+  [[phases.steps]]
+  id = "4.3"
+  name = "PR stellen"
+  order = 3
+  skill = "commit"
+  prompt_suffix = "Open a pull request for the current branch."
+  category = "git"
+  enabled = true
+
+# ==================== 5. Umsetzung check / PR ================================
+[[phases]]
+id = "p5"
+name = "Umsetzung check"
+order = 5
+
+  [[phases.steps]]
+  id = "5.1"
+  name = "PR/CI prüfen, fixen und mergen"
+  order = 1
+  skill = "04-gh-pr-go"
+  category = "ultrabrain"
+  agent = "sisyphus"
+  enabled = true
+    # Autonomy: skip the PR check when there are no open PRs.
+    [phases.steps.auto_skip]
+    sensor = "open-prs"
+    when = "==0"
+
+# ==================== 6. GH Alerts and Warnings =============================
+[[phases]]
+id = "p6"
+name = "GH Alerts"
+order = 6
+
+  [[phases.steps]]
+  id = "6.1"
+  name = "Security"
+  order = 1
+  skill = "05-gh-security-fix"
+  category = "ultrabrain"
+  enabled = true
+
+# ============================ 7. Pre-Release =================================
+[[phases]]
+id = "p7"
+name = "Pre-Release"
+order = 7
+
+  [[phases.steps]]
+  id = "7.1"
+  name = "Github Optimierung prüfen (readme, gh-audit, bots)"
+  order = 1
+  skill = "06-gh-prerelease"
+  category = "deep"
+  enabled = true
+
+# ============================ 8. Release =====================================
+[[phases]]
+id = "p8"
+name = "Release"
+order = 8
+
+  [[phases.steps]]
+  id = "8.1"
+  name = "Release"
+  order = 1
+  skill = "07-gh-release"
+  category = "deep"
+  enabled = true

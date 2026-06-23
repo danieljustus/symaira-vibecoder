@@ -1,0 +1,24 @@
+# Binaries
+/symvibe
+/bin/
+*.exe
+
+# Go
+*.test
+*.out
+coverage.*
+
+# Frontend (React/Vite upgrade path) — but KEEP the committed dependency-free
+# board at web/dist/index.html so `go:embed` always has something to ship.
+/web/node_modules/
+/web/dist/assets/
+/web/dist/*.js
+/web/dist/*.css
+/web/.vite/
+
+# Local / OS
+.DS_Store
+.env
+.env.*
+*.local
+.cache/

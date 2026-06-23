@@ -1,0 +1,103 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/danieljustus/symaira-vibecoder/internal/browser"
+	"github.com/danieljustus/symaira-vibecoder/internal/config"
+	"github.com/danieljustus/symaira-vibecoder/internal/engine"
+	"github.com/danieljustus/symaira-vibecoder/internal/runner"
+	"github.com/danieljustus/symaira-vibecoder/internal/server"
+	"github.com/danieljustus/symaira-vibecoder/web"
+)
+
+func serveCmd() *cobra.Command {
+	var host string
+	var port int
+	var dir string
+	var noOpen bool
+
+	cmd := &cobra.Command{
+		Use:   "serve",
+		Short: "Start the Baukasten board on localhost",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := config.Load("")
+			if err != nil {
+				return err
+			}
+			if host != "" {
+				cfg.Server.Host = host
+			}
+			if cmd.Flags().Changed("port") {
+				cfg.Server.Port = port
+			}
+			if dir != "" {
+				cfg.Runner.WorkingDir = dir
+			}
+			if noOpen {
+				cfg.Server.OpenBrowser = false
+			}
+
+			res := config.NewResolver(cfg)
+			run := runner.NewOpenCodeRunner(cfg.Runner.OpencodeBin, cfg.Runner.RequestTimeout.Std())
+			bus := engine.NewBus()
+			eng := engine.New(cfg, res, run, bus)
+			srv := server.New(cfg, eng, web.DistFS())
+
+			addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+			ln, err := net.Listen("tcp", addr)
+			if err != nil {
+				return fmt.Errorf("listen on %s: %w", addr, err)
+			}
+			url := "http://" + ln.Addr().String()
+
+			httpSrv := &http.Server{
+				Handler:           srv.Handler(),
+				ReadHeaderTimeout: 10 * time.Second,
+			}
+
+			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
+
+			go func() {
+				<-ctx.Done()
+				eng.Cancel() // stop any in-flight run so we don't orphan an opencode process
+				sh, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				_ = httpSrv.Shutdown(sh)
+			}()
+
+			if ok, info := run.Available(ctx); ok {
+				slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
+			} else {
+				slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+			}
+
+			fmt.Printf("\n  symvibe board → %s\n  (Ctrl-C to stop)\n\n", url)
+			if cfg.Server.OpenBrowser {
+				go func() { _ = browser.Open(url) }()
+			}
+
+			if err := httpSrv.Serve(ln); err != nil && err != http.ErrServerClosed {
+				return err
+			}
+			slog.Info("symvibe stopped")
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&host, "host", "", "bind host (default 127.0.0.1 from config)")
+	cmd.Flags().IntVar(&port, "port", 0, "bind port (default 4317 from config; pass 0 for a random free port)")
+	cmd.Flags().StringVar(&dir, "dir", "", "working directory the cycle operates on (default: current dir)")
+	cmd.Flags().BoolVar(&noOpen, "no-open", false, "do not open the browser")
+	return cmd
+}

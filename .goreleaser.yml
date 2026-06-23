@@ -1,0 +1,46 @@
+# goreleaser config for symvibe. Build the (committed) board is already embedded,
+# so no Node step is required. Tag with `vX.Y.Z` to release.
+version: 2
+
+project_name: symaira-vibecoder
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: symvibe
+    main: ./cmd/symvibe
+    binary: symvibe
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/danieljustus/symaira-vibecoder/internal/version.Version={{ .Version }}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: default
+    name_template: "symvibe_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: symvibe
+    repository:
+      owner: danieljustus
+      name: homebrew-tap
+    homepage: "https://github.com/danieljustus/symaira-vibecoder"
+    description: "Graphical Vibe-Coding Baukasten that drives opencode"
+    license: "MIT"
+    test: |
+      system "#{bin}/symvibe", "version"
+
+release:
+  github:
+    owner: danieljustus
+    name: symaira-vibecoder

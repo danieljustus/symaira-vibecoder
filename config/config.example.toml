@@ -1,0 +1,106 @@
+# ~/.config/symvibe/config.toml
+#
+# symvibe configuration. TOML is the primary format (ecosystem convention).
+# Every value here can be overridden by a SYMVIBE_* environment variable
+# (see the "ENV OVERRIDES" comments). Precedence, lowest -> highest:
+#   built-in defaults  <  this file  <  SYMVIBE_* env vars  <  CLI flags
+#
+# This file is OPTIONAL. With no config at all, symvibe boots on built-in
+# defaults (defaults.go) and only needs opencode on PATH to function.
+
+schema_version = 1
+
+# ----------------------------------------------------------------------------
+[server]
+# Local web UI / API + WebSocket(SSE) endpoint. Bound to loopback only.
+host = "127.0.0.1"          # ENV: SYMVIBE_HOST
+port = 4317                  # ENV: SYMVIBE_PORT
+open_browser = true          # auto-open the GUI on start; ENV: SYMVIBE_OPEN_BROWSER
+
+# ----------------------------------------------------------------------------
+[runner]
+# Which backend drives the actual agent work. symvibe does NOT fork opencode;
+# it shells out to / attaches to it through a swappable Runner interface.
+backend = "opencode"                       # opencode | claudecode | api ; ENV: SYMVIBE_RUNNER_BACKEND
+opencode_bin = "~/.opencode/bin/opencode"  # auto-detected on PATH if empty; ENV: SYMVIBE_OPENCODE_BIN
+working_dir = ""                            # default repo to operate on; "" = CWD at launch; ENV: SYMVIBE_WORKING_DIR
+mode = "run"                               # run = `opencode run --format json` per step (MVP) | serve = headless HTTP (roadmap) ; ENV: SYMVIBE_RUNNER_MODE
+serve_port = 0                              # 0 = let symvibe pick a free port for `opencode serve` (serve mode only)
+serve_host = "127.0.0.1"
+# Pass `--dangerously-skip-permissions` to opencode so an unattended step does
+# not block on a tool-permission prompt (no TTY). See SECURITY.md — this
+# auto-approves any permission not explicitly denied. ENV: SYMVIBE_SKIP_PERMISSIONS
+skip_permissions = true
+request_timeout = "30m"                     # per-step wall-clock budget before the step is marked failed
+max_parallel_subagents = 4                  # reserved: cap on concurrent subagent steps (MVP runs sequentially)
+
+# ----------------------------------------------------------------------------
+# MODEL REGISTRY
+# Named models referenced by categories/steps. The "id" is the opencode model
+# id in "provider/model" form (exactly what `opencode run --model` expects).
+# variant is passed through as `--variant` (high | max | minimal | "").
+# fallback_models are tried IN ORDER by symvibe's resolver when the primary
+# (or a prior fallback) errors out — opencode itself does NOT chain these.
+[models]
+  [models.mimo]
+  id = "opencode-go/mimo-v2.5"
+  temperature = 0.2
+  variant = "high"
+  fallback_models = ["opencode/big-pickle", "opencode-go/qwen3.7-plus", "opencode-go/deepseek-v4-flash"]
+
+  [models.flash]
+  id = "opencode-go/deepseek-v4-flash"
+  temperature = 0.2
+  variant = ""
+  fallback_models = ["opencode/deepseek-v4-flash-free", "opencode/big-pickle"]
+
+  [models.qwen]
+  id = "opencode-go/qwen3.7-plus"
+  temperature = 0.25
+  variant = "high"
+  fallback_models = ["opencode-go/mimo-v2.5", "opencode-go/deepseek-v4-flash"]
+
+  [models.kimi]
+  id = "kimi-for-coding/k2p7"
+  temperature = 0.25
+  variant = "high"
+  fallback_models = ["opencode-go/minimax-m3", "opencode-go/mimo-v2.5"]
+
+# ----------------------------------------------------------------------------
+# CATEGORY BINDINGS
+# Each work-area category points at a registry model by name (model_ref).
+# A category MAY inline-override temperature/variant/fallbacks; if a field is
+# omitted it inherits from the referenced model. These names mirror
+# oh-my-openagent.json so muscle memory carries over.
+[categories]
+  [categories.ultrabrain]
+  model_ref = "mimo"
+  [categories.deep]
+  model_ref = "mimo"
+  fallback_models = ["opencode/nemotron-3-ultra-free", "opencode-go/qwen3.7-plus", "opencode-go/deepseek-v4-flash"]
+  [categories.quick]
+  model_ref = "flash"
+  [categories.writing]
+  model_ref = "flash"
+  temperature = 0.6
+  [categories.git]
+  model_ref = "flash"
+  temperature = 0.1
+  [categories."unspecified-low"]
+  model_ref = "flash"
+  temperature = 0.25
+  [categories."unspecified-high"]
+  model_ref = "qwen"
+
+# ----------------------------------------------------------------------------
+[defaults]
+# The global fallback used when a step has no override AND its category is
+# unknown/unset. Must reference an existing category (resolved transitively).
+category = "unspecified-high"
+# Default opencode agent when a step does not name one. "" = opencode's own
+# default PRIMARY agent. Do NOT put a subagent here (e.g. "build"): opencode
+# rejects subagents as the top-level agent. A per-step `agent` may name a
+# primary agent (e.g. "sisyphus").
+agent = ""
+# Active Baukasten loaded on launch (file under data dir cycles/<id>.toml).
+cycle = "default"

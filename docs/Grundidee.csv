@@ -1,0 +1,24 @@
+Cycle
+Phasen;Schritte;Notizen
+1. Cleaning;1.1 Branch;/Users/daniel/.config/opencode/skills/00-sync
+;1.2 Commits;
+2. Code Review;2.1 Quality;/Users/daniel/.config/opencode/skills/01-code-review
+;2.2 Simplify;
+;2.3 Security;
+;2.4 UI/UX;
+;2.5 Performance;
+;2.6 remove AI Slop;
+;2.7 Debugging/bug hunt;
+;2.8 Test Coverage;/Users/daniel/.config/opencode/skills/test-coverage
+3. Planung;3.1 Issues;/Users/daniel/.config/opencode/skills/02-gh-plan
+;3.2 Milestones;
+;3.3 Project;
+4. Coden/Umsetzung der Planung;4.1 Issues;/Users/daniel/.config/opencode/skills/03-gh-go
+;4.2 Commit;
+;4.3 PR stellen;
+5. Umsetzung check/PR;5.1 PR/CI prüfen, fixen und mergen;/Users/daniel/.config/opencode/skills/04-gh-pr-go
+;5.2;
+6. GH Alerts and Warnings;6.1 Security;/Users/daniel/.config/opencode/skills/05-gh-security-fix
+;6.2;
+7. Pre-Release;7.1 Github Optimierung prüfen (readme, gh-audit, bots);/Users/daniel/.config/opencode/skills/06-gh-prerelease
+8. Release;8.1;/Users/daniel/.config/opencode/skills/07-gh-release
