@@ -11,8 +11,8 @@ import (
 // Validate checks structural integrity: non-empty cycle id and globally-unique
 // phase and step ids. Call before SaveCycle on a GUI-supplied cycle.
 func (c *Cycle) Validate() error {
-	if c.ID == "" {
-		return fmt.Errorf("cycle: empty id")
+	if err := validateCycleID(c.ID); err != nil {
+		return err
 	}
 	seenP := map[string]bool{}
 	seenS := map[string]bool{}

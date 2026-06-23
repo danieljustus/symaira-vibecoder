@@ -101,3 +101,19 @@ func TestMoveStepLeavesCycleUnchangedWhenTargetPhaseIsMissing(t *testing.T) {
 		t.Fatalf("failed move changed cycle steps: %+v", got)
 	}
 }
+
+func TestCyclePersistenceRejectsPathLikeIDs(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	for _, id := range []string{"../escape", "nested/cycle", `nested\\cycle`, "/tmp/cycle", ".."} {
+		if err := SaveCycle(&Cycle{ID: id}); err == nil {
+			t.Errorf("SaveCycle(%q) accepted a path-like id", id)
+		}
+		if _, err := LoadCycle(id); err == nil {
+			t.Errorf("LoadCycle(%q) accepted a path-like id", id)
+		}
+	}
+
+	if err := SaveCycle(&Cycle{ID: "cycle-safe_1"}); err != nil {
+		t.Fatalf("SaveCycle rejected a valid id: %v", err)
+	}
+}
