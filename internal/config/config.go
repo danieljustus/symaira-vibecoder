@@ -11,6 +11,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -178,6 +179,9 @@ func expandPaths(c *Config) {
 // Validate checks structural integrity: every category model_ref resolves, the
 // default category exists, the runner backend is known.
 func (c *Config) Validate() error {
+	if err := validateLoopbackHost(c.Server.Host); err != nil {
+		return err
+	}
 	switch c.Runner.Backend {
 	case "opencode", "claudecode", "api":
 	default:
@@ -196,6 +200,14 @@ func (c *Config) Validate() error {
 	}
 	if _, ok := c.Categories[c.Defaults.Category]; !ok {
 		return fmt.Errorf("config: defaults.category %q is not a defined category", c.Defaults.Category)
+	}
+	return nil
+}
+
+func validateLoopbackHost(host string) error {
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsLoopback() {
+		return fmt.Errorf("config: server.host %q must be a loopback IP address", host)
 	}
 	return nil
 }

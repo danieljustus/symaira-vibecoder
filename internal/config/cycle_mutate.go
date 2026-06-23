@@ -94,6 +94,11 @@ func (c *Cycle) DeleteStep(stepID string) bool {
 // MoveStep moves a step to toPhaseID at position toIndex (clamped to the target
 // phase's bounds). Works within and across phases — backs board drag & drop.
 func (c *Cycle) MoveStep(stepID, toPhaseID string, toIndex int) error {
+	dst := c.phaseByID(toPhaseID)
+	if dst == nil {
+		return fmt.Errorf("target phase %q not found", toPhaseID)
+	}
+
 	var moved Step
 	found := false
 	for pi := range c.Phases {
@@ -111,10 +116,6 @@ func (c *Cycle) MoveStep(stepID, toPhaseID string, toIndex int) error {
 	}
 	if !found {
 		return fmt.Errorf("step %q not found", stepID)
-	}
-	dst := c.phaseByID(toPhaseID)
-	if dst == nil {
-		return fmt.Errorf("target phase %q not found", toPhaseID)
 	}
 	dst.Steps = insertStep(dst.Steps, moved, toIndex)
 	c.Reindex()

@@ -88,3 +88,16 @@ func TestMutatorsMoveAddDeleteValidate(t *testing.T) {
 		t.Fatal("duplicate step id must fail validation")
 	}
 }
+
+func TestMoveStepLeavesCycleUnchangedWhenTargetPhaseIsMissing(t *testing.T) {
+	c := &Cycle{ID: "t", Phases: []Phase{{
+		ID: "p1", Name: "A", Steps: []Step{step("a", StatusPending), step("b", StatusPending)},
+	}}}
+
+	if err := c.MoveStep("a", "missing", 0); err == nil {
+		t.Fatal("MoveStep should reject an unknown target phase")
+	}
+	if got := c.Phases[0].Steps; len(got) != 2 || got[0].ID != "a" || got[1].ID != "b" {
+		t.Fatalf("failed move changed cycle steps: %+v", got)
+	}
+}
