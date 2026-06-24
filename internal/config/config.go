@@ -37,10 +37,11 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host        string `toml:"host"`
-	Port        int    `toml:"port"`
-	OpenBrowser bool   `toml:"open_browser"`
-	Access      string `toml:"access"` // loopback | lan | relay
+	Host          string `toml:"host"`
+	Port          int    `toml:"port"`
+	OpenBrowser   bool   `toml:"open_browser"`
+	Access        string `toml:"access"`          // loopback | lan | relay
+	MulticastDNS  bool   `toml:"multicast_dns"`   // advertise _symvibe._tcp in lan mode
 }
 
 type AuthConfig struct {
