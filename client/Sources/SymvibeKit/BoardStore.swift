@@ -7,6 +7,7 @@ public final class BoardStore {
     public var cycle: Cycle?
     public var runState: RunState?
     public var isConnected = false
+    public var isDemoMode = false
     public var lastError: String?
 
     private let connectionStore: ConnectionStore
@@ -26,6 +27,11 @@ public final class BoardStore {
     public func connect() async {
         guard let profile = connectionStore.activeProfile else {
             lastError = "No active connection"
+            return
+        }
+
+        if profile.isDemo {
+            await connectDemo()
             return
         }
 
@@ -62,8 +68,19 @@ public final class BoardStore {
         apiClient = nil
         sseClient = nil
         isConnected = false
+        isDemoMode = false
         cycle = nil
         runState = nil
+        lastError = nil
+    }
+
+    // MARK: - Demo Mode
+
+    private func connectDemo() async {
+        cycle = DemoData.sampleCycle
+        runState = DemoData.sampleRunState
+        isConnected = true
+        isDemoMode = true
         lastError = nil
     }
 

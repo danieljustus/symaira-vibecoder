@@ -35,6 +35,16 @@ public final class ConnectionStore {
         persist()
     }
 
+    // MARK: - Demo
+
+    /// Ensures the built-in demo profile is available in the profile list.
+    /// If it already exists, this is a no-op.
+    public func ensureDemoProfile() {
+        guard !profiles.contains(where: \.isDemo) else { return }
+        profiles.append(ConnectionProfile.demoProfile)
+        persist()
+    }
+
     // MARK: - CRUD
 
     public func add(_ profile: ConnectionProfile) {

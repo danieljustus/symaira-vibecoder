@@ -14,6 +14,22 @@ public struct ConnectionProfile: Codable, Sendable, Identifiable, Hashable {
     public var accountNodeID: String?
     public var createdAt: Date
 
+    /// Well-known ID for the built-in demo profile.
+    public static let demoID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+
+    /// Pre-configured demo profile. Selecting this profile activates demo mode
+    /// (sample data, no network calls) — required for App Store review.
+    public static let demoProfile = ConnectionProfile(
+        id: demoID,
+        name: "Demo Mode",
+        hostCandidates: [],
+        port: 0,
+        certFingerprint: ""
+    )
+
+    /// Whether this profile is the built-in demo profile.
+    public var isDemo: Bool { id == Self.demoID }
+
     public init(
         id: UUID = UUID(),
         name: String,

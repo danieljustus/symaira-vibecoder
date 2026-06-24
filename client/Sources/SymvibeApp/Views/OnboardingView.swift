@@ -1,4 +1,5 @@
 import SwiftUI
+import SymvibeKit
 
 // MARK: - Main Onboarding View
 
@@ -61,6 +62,26 @@ public struct OnboardingView: View {
                                 .background(.quaternary)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
+
+                        Divider()
+                            .padding(.vertical, 4)
+
+                        Button {
+                            enterDemoMode()
+                        } label: {
+                            Label("Try Demo", systemImage: "play.circle")
+                                .font(.subheadline.weight(.medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.orange.opacity(0.12))
+                                .foregroundStyle(.orange)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+
+                        Text("Explore the app with sample data. No server needed.")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
                     }
                     .padding(.horizontal, 32)
                     .padding(.top, 16)
@@ -108,6 +129,11 @@ public struct OnboardingView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func enterDemoMode() {
+        store.ensureDemoProfile()
+        store.setActive(ConnectionProfile.demoID)
     }
 }
 

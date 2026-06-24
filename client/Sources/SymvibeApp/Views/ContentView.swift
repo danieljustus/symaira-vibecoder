@@ -64,7 +64,7 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                DoctorView(apiClient: store.client)
+                DoctorView(apiClient: store.client, isDemoMode: store.isDemoMode)
             }
             .tabItem {
                 Label("Doctor", systemImage: "stethoscope")
@@ -75,6 +75,13 @@ struct MainTabView: View {
             }
             .tabItem {
                 Label("Engine", systemImage: "gearshape.2")
+            }
+
+            NavigationStack {
+                SettingsView(connectionStore: connectionStore)
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape")
             }
         }
         .frame(minWidth: 700, minHeight: 500)
@@ -96,10 +103,17 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                DoctorView(apiClient: store.client)
+                DoctorView(apiClient: store.client, isDemoMode: store.isDemoMode)
             }
             .tabItem {
                 Label("Doctor", systemImage: "stethoscope")
+            }
+
+            NavigationStack {
+                SettingsView(connectionStore: connectionStore)
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape")
             }
         }
     }

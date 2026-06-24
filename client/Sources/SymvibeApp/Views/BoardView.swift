@@ -7,6 +7,10 @@ struct BoardView: View {
 
     var body: some View {
         ScrollView {
+            if store.isDemoMode {
+                DemoBanner()
+            }
+
             if let cycle = store.cycle {
                 BoardContent(cycle: cycle, store: store, activityStore: activityStore)
                     .padding()
@@ -354,5 +358,25 @@ private struct StepCard: View {
         case .blocked: .orange
         case .needsReview: .yellow
         }
+    }
+}
+
+// MARK: - Demo Banner
+
+private struct DemoBanner: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.orange)
+            Text("Demo Mode — Sample data. No actions are executed.")
+                .font(.caption.weight(.medium))
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.orange.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal)
+        .padding(.top, 8)
     }
 }

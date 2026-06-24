@@ -3,6 +3,7 @@ import SymvibeKit
 
 struct DoctorView: View {
     let apiClient: APIClient?
+    var isDemoMode: Bool = false
 
     @State private var doctor: DoctorResponse?
     @State private var version: VersionResponse?
@@ -84,6 +85,13 @@ struct DoctorView: View {
     }
 
     private func load() async {
+        if isDemoMode {
+            self.doctor = DemoData.sampleDoctor
+            self.version = DemoData.sampleVersion
+            isLoading = false
+            return
+        }
+
         guard let client = apiClient else {
             self.error = "Not connected to server"
             isLoading = false
