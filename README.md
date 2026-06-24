@@ -1,5 +1,10 @@
 # symvibe — Vibe Coding Baukasten
 
+[![CI](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml/badge.svg)](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/danieljustus/symaira-vibecoder)](https://github.com/danieljustus/symaira-vibecoder/releases)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/danieljustus/symaira-vibecoder)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Eine schlanke grafische Oberfläche, die deinen **Cycle** (Cleaning → Code
 > Review → Planung → Coden → PR-Check → GH Alerts → Pre-Release → Release)
 > autonom durchläuft — angetrieben von **opencode**, mit Modell-Auswahl pro
