@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"os/exec"
+	"strings"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
 	"github.com/danieljustus/symaira-vibecoder/internal/runner"
@@ -104,24 +105,55 @@ func (s *Server) getCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 type doctorResp struct {
-	Opencode   runner.Info `json:"opencode"`
-	OpencodeOK bool        `json:"opencode_ok"`
-	Git        bool        `json:"git"`
-	Gh         bool        `json:"gh"`
-	Runnable   bool        `json:"runnable"`
+	Opencode   runner.Info       `json:"opencode"`
+	OpencodeOK bool              `json:"opencode_ok"`
+	Git        bool              `json:"git"`
+	Gh         bool              `json:"gh"`
+	Runnable   bool              `json:"runnable"`
+	Hints      map[string]string `json:"hints,omitempty"`
 }
 
 // getDoctor reports backend availability. The board uses opencode_ok/runnable to
 // enable or grey out the run controls (graceful degradation).
 func (s *Server) getDoctor(w http.ResponseWriter, r *http.Request) {
 	ok, info := s.eng.Available(r.Context())
+	gitOK := onPath("git")
+	ghOK := onPath("gh")
+	hints := buildHints(s.cfg.Runner.Backend, ok, info, gitOK, ghOK)
 	writeOK(w, doctorResp{
 		Opencode:   info,
 		OpencodeOK: ok,
-		Git:        onPath("git"),
-		Gh:         onPath("gh"),
+		Git:        gitOK,
+		Gh:         ghOK,
 		Runnable:   ok,
+		Hints:      hints,
 	})
+}
+
+func buildHints(backend string, opencodeOK bool, info runner.Info, gitOK, ghOK bool) map[string]string {
+	hints := map[string]string{}
+	switch backend {
+	case "api":
+		if !opencodeOK {
+			hints["api"] = "backend=api is configured; set runner.api_key or SYMVIBE_ANTHROPIC_API_KEY to run steps without opencode"
+		}
+	default:
+		if strings.Contains(info.Detail, "older than required") {
+			hints["opencode"] = "upgrade opencode: curl -fsSL https://opencode.ai/install.sh | sh"
+		} else if !opencodeOK {
+			hints["opencode"] = "install opencode: curl -fsSL https://opencode.ai/install.sh | sh   (or brew install opencode if available)"
+		}
+	}
+	if !gitOK {
+		hints["git"] = "install git: https://git-scm.com/downloads"
+	}
+	if !ghOK {
+		hints["gh"] = "install gh (optional): https://cli.github.com  — only needed for GitHub workflows"
+	}
+	if len(hints) == 0 {
+		return nil
+	}
+	return hints
 }
 
 func onPath(bin string) bool {

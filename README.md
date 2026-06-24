@@ -34,6 +34,12 @@ Peer bleibt. Ein Fork kann später jederzeit als weiterer Runner andocken.
 ## Installation
 
 ```bash
+# pre-built release (macOS / Linux)
+curl -fsSL https://raw.githubusercontent.com/danieljustus/symaira-vibecoder/main/scripts/install.sh | sh
+
+# Homebrew (requires the symaira/tap repository; see homebrew/symvibe.rb)
+brew install symaira/tap/symvibe
+
 # aus dem Quellcode (Go 1.26+)
 make build && ./symvibe serve
 
@@ -42,8 +48,17 @@ go install github.com/danieljustus/symaira-vibecoder/cmd/symvibe@latest
 symvibe serve
 ```
 
-Voraussetzung für *Ausführen*: [`opencode`](https://opencode.ai) auf dem PATH
-(oder unter `~/.opencode/bin`). Ohne opencode läuft das Board read-only.
+Voraussetzungen für *Ausführen*:
+
+- **opencode-Backend (Default):** [`opencode`](https://opencode.ai) auf dem PATH
+  oder unter `~/.opencode/bin`. `symvibe doctor` meldet, wenn die Version zu alt
+  ist, und zeigt Install-Hinweise.
+- **API-Backend:** setze `runner.backend = "api"` und `runner.api_key` (oder
+  `SYMVIBE_ANTHROPIC_API_KEY`). Damit läuft symvibe ohne installiertes
+  opencode.
+- **git** ist erforderlich; **gh** ist optional (nur für GitHub-Workflows).
+
+Ohne ausführbaren Backend ist das Board read-only.
 
 ## Nutzung
 
