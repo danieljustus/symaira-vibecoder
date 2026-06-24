@@ -14,20 +14,20 @@ import (
 type capability string
 
 const (
-	capRun         capability = "run"
-	capEdit        capability = "edit"
-	capPairing     capability = "pairing"
-	capTLS         capability = "tls"
+	capRun          capability = "run"
+	capEdit         capability = "edit"
+	capPairing      capability = "pairing"
+	capTLS          capability = "tls"
 	capMulticastDNS capability = "mdns"
 )
 
 // versionResp is the response shape for GET /api/version.
 type versionResp struct {
-	APIVersion   string       `json:"api_version"`
-	ServerVersion string      `json:"server_version"`
-	Capabilities []capability `json:"capabilities"`
-	GoVersion    string       `json:"go_version"`
-	Platform     string       `json:"platform"`
+	APIVersion    string       `json:"api_version"`
+	ServerVersion string       `json:"server_version"`
+	Capabilities  []capability `json:"capabilities"`
+	GoVersion     string       `json:"go_version"`
+	Platform      string       `json:"platform"`
 }
 
 // getVersion reports the server's API contract version and capabilities so

@@ -9,6 +9,9 @@ package runner
 import (
 	"context"
 	"errors"
+	"time"
+
+	"github.com/danieljustus/symaira-vibecoder/internal/config"
 )
 
 // ErrUnavailable is returned by RunStep when the backend cannot be located.
@@ -74,4 +77,19 @@ type Runner interface {
 	// is closed when the run terminates. The caller cancels by cancelling ctx.
 	// Returns ErrUnavailable (and a nil channel) when the backend is missing.
 	RunStep(ctx context.Context, req StepRequest) (<-chan RunEvent, error)
+}
+
+// New creates the configured backend. It is the single factory for Runner
+// implementations; serve.go and doctor.go use it instead of hardcoding one.
+func New(cfg config.RunnerConfig) Runner {
+	timeout := cfg.RequestTimeout.Std()
+	if timeout <= 0 {
+		timeout = 30 * time.Minute
+	}
+	switch cfg.Backend {
+	case "api":
+		return NewAPIRunner(cfg.APIKey, timeout)
+	default:
+		return NewOpenCodeRunner(cfg.OpencodeBin, timeout)
+	}
 }

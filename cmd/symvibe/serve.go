@@ -58,7 +58,7 @@ func serveCmd() *cobra.Command {
 			}
 
 			res := config.NewResolver(cfg)
-			run := runner.NewOpenCodeRunner(cfg.Runner.OpencodeBin, cfg.Runner.RequestTimeout.Std())
+			run := runner.New(cfg.Runner)
 			bus := engine.NewBus()
 			eng := engine.New(cfg, res, run, bus)
 			srv := server.New(cfg, eng, web.DistFS())

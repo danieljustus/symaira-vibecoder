@@ -18,6 +18,7 @@ coverage.*
 
 # Local / OS
 .DS_Store
+.omo/
 .env
 .env.*
 *.local
