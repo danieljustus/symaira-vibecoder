@@ -14,6 +14,7 @@ import (
 
 	"github.com/danieljustus/symaira-vibecoder/internal/browser"
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
+	"github.com/danieljustus/symaira-vibecoder/internal/devices"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
 	"github.com/danieljustus/symaira-vibecoder/internal/runner"
 	"github.com/danieljustus/symaira-vibecoder/internal/server"
@@ -61,6 +62,15 @@ func serveCmd() *cobra.Command {
 			bus := engine.NewBus()
 			eng := engine.New(cfg, res, run, bus)
 			srv := server.New(cfg, eng, web.DistFS())
+			if cfg.Auth.Enabled {
+				reg, err := devices.Open()
+				if err != nil {
+					slog.Warn("device registry unavailable", "err", err)
+				} else {
+					srv.SetDevices(reg)
+					srv.SetTokenStore(reg)
+				}
+			}
 
 			addr := net.JoinHostPort(cfg.Server.Host, fmt.Sprintf("%d", cfg.Server.Port))
 			ln, err := net.Listen("tcp", addr)
