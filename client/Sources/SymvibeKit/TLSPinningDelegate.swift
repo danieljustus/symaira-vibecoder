@@ -1,5 +1,19 @@
 import Foundation
 
+/// `URLSessionDelegate` that pins TLS connections to a specific certificate fingerprint.
+///
+/// Used by ``PairingClient`` during the pairing handshake and should be used for all
+/// `APIClient` / `SSEClient` sessions to enforce certificate trust. The delegate accepts
+/// a connection only when the leaf certificate's SHA-256 fingerprint matches
+/// `expectedFingerprint` (case-insensitive, colon/space tolerant).
+///
+/// Pass an instance as the `delegate:` when creating a `URLSession`:
+///
+///     let delegate = TLSPinningDelegate(expectedFingerprint: "ab:cd:…")
+///     let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
+///
+/// For App Store builds the fingerprint is embedded at pairing time; for development
+/// the self-signed cert from `symvibe serve` is accepted via the QR payload.
 public final class TLSPinningDelegate: NSObject, URLSessionDelegate, Sendable {
     public let expectedFingerprint: String
 

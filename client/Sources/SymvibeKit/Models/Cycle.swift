@@ -23,6 +23,19 @@ public enum StepStatus: String, Codable, Sendable, CaseIterable {
             false
         }
     }
+
+    /// Status glyph for display (matches README mapping: ○ ◐ ✓ – ✕ ⦸ !).
+    public var glyph: String {
+        switch self {
+        case .pending: "○"
+        case .inProgress: "◐"
+        case .done: "✓"
+        case .skipped: "–"
+        case .failed: "✕"
+        case .blocked: "⦸"
+        case .needsReview: "!"
+        }
+    }
 }
 
 public struct AutoSkip: Codable, Sendable, Equatable {
@@ -41,12 +54,12 @@ public struct Step: Codable, Sendable, Identifiable, Equatable {
     public let id: String
     public let name: String
     public let order: Int
-    public let skill: String
-    public let category: String
+    public var skill: String
+    public var category: String
     public let agent: String?
     public let promptSuffix: String?
-    public let enabled: Bool
-    public let modelOverride: StepModelOverride?
+    public var enabled: Bool
+    public var modelOverride: StepModelOverride?
     public let autoSkip: AutoSkip?
     public let dependsOn: [String]?
     public let parallelSafe: Bool?

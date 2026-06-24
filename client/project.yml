@@ -1,0 +1,104 @@
+name: Symvibe
+options:
+  bundleIdPrefix: dev.symaira
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: false
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  SymvibeClient:
+    path: .
+
+targets:
+  Symvibe:
+    type: application
+    platform: macOS
+    deploymentTarget:
+      macOS: "14.0"
+    sources:
+      - path: Sources/SymvibeApp
+        excludes:
+          - "**/*.xcassets"
+    entitlements:
+      path: Symvibe.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.symaira.Symvibe
+        INFOPLIST_FILE: Sources/SymvibeApp/Info.plist
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: true
+        COMBINE_HIDPI_IMAGES: true
+    dependencies:
+      - package: SymvibeClient
+        product: SymvibeKit
+    postBuildScripts:
+      - name: Embed symvibe Engine
+        script: |
+          # Copy the pre-built symvibe binary into Contents/Resources.
+          # Build it first: cd .. && make build
+          SRC="${PROJECT_DIR}/../symvibe"
+          DST="${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources"
+          if [ -f "$SRC" ]; then
+            mkdir -p "$DST"
+            cp "$SRC" "$DST/symvibe"
+            chmod +x "$DST/symvibe"
+            echo "Embedded symvibe binary into $DST/symvibe"
+          else
+            echo "warning: symvibe binary not found at $SRC — run 'make build' first"
+          fi
+        runOnlyWhenInstalling: false
+        basedOnDependencyAnalysis: false
+
+  Symvibe-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget:
+      iOS: "17.0"
+    sources:
+      - path: Sources/SymvibeApp
+        excludes:
+          - "**/*.xcassets"
+    entitlements:
+      path: Symvibe.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.symaira.Symvibe
+        INFOPLIST_FILE: Sources/SymvibeApp/Info.plist
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: SymvibeClient
+        product: SymvibeKit
+      - target: SymvibeWidget
+
+  SymvibeWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget:
+      iOS: "17.0"
+    sources:
+      - path: Sources/SymvibeWidget
+    entitlements:
+      path: SymvibeWidget.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.symaira.Symvibe.widget
+        INFOPLIST_FILE: Sources/SymvibeWidget/Info.plist
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: ""
+    dependencies:
+      - package: SymvibeClient
+        product: SymvibeKit
+        embed: false
