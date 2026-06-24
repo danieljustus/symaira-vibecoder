@@ -10,16 +10,18 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/danieljustus/symaira-vibecoder/internal/auth"
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
 )
 
 // Server wires the engine + config + embedded UI into an http.Handler.
 type Server struct {
-	cfg  *config.Config
-	eng  *engine.Engine
-	dist fs.FS
-	mux  *http.ServeMux
+	cfg   *config.Config
+	eng   *engine.Engine
+	dist  fs.FS
+	mux   *http.ServeMux
+	store auth.TokenStore
 }
 
 // New builds the server. dist is the embedded web/dist filesystem (rooted at the
@@ -30,8 +32,16 @@ func New(cfg *config.Config, eng *engine.Engine, dist fs.FS) *Server {
 	return s
 }
 
+func (s *Server) SetTokenStore(store auth.TokenStore) { s.store = store }
+
 // Handler returns the root http.Handler (for http.Server / tests).
-func (s *Server) Handler() http.Handler { return s.mux }
+func (s *Server) Handler() http.Handler {
+	if s.store == nil {
+		return s.mux
+	}
+	bypass := s.cfg.Server.Access == "" || s.cfg.Server.Access == "loopback"
+	return auth.Middleware(s.mux, s.store, bypass)
+}
 
 func (s *Server) routes() {
 	m := http.NewServeMux()
