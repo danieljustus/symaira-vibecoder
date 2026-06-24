@@ -17,6 +17,7 @@ import (
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
 	"github.com/danieljustus/symaira-vibecoder/internal/runner"
 	"github.com/danieljustus/symaira-vibecoder/internal/server"
+	"github.com/danieljustus/symaira-vibecoder/internal/server/tlsutil"
 	"github.com/danieljustus/symaira-vibecoder/web"
 )
 
@@ -66,7 +67,6 @@ func serveCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("listen on %s: %w", addr, err)
 			}
-			url := "http://" + ln.Addr().String()
 
 			httpSrv := &http.Server{
 				Handler:           srv.Handler(),
@@ -78,26 +78,51 @@ func serveCmd() *cobra.Command {
 
 			go func() {
 				<-ctx.Done()
-				eng.Cancel() // stop any in-flight run so we don't orphan an opencode process
+				eng.Cancel()
 				sh, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 				_ = httpSrv.Shutdown(sh)
 			}()
 
-			if ok, info := run.Available(ctx); ok {
-				slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
+			useTLS := cfg.Server.Access == "lan" || cfg.Server.Access == "relay"
+			scheme := "http"
+			if useTLS {
+				hostname, _, _ := net.SplitHostPort(ln.Addr().String())
+				pair, err := tlsutil.EnsureCert(config.DataDir(), hostname)
+				if err != nil {
+					return fmt.Errorf("tls: %w", err)
+				}
+				slog.Info("TLS cert ready", "fp", pair.Fingerprint[:16], "cert", pair.CertPath)
+				scheme = "https"
+				url := scheme + "://" + ln.Addr().String()
+				fmt.Printf("\n  symvibe board → %s\n  (Ctrl-C to stop)\n\n", url)
+				if cfg.Server.OpenBrowser {
+					go func() { _ = browser.Open(url) }()
+				}
+				if ok, info := run.Available(ctx); ok {
+					slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
+				} else {
+					slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+				}
+				if err := httpSrv.ServeTLS(ln, pair.CertPath, pair.KeyPath); err != nil && err != http.ErrServerClosed {
+					return err
+				}
 			} else {
-				slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+				url := scheme + "://" + ln.Addr().String()
+				fmt.Printf("\n  symvibe board → %s\n  (Ctrl-C to stop)\n\n", url)
+				if cfg.Server.OpenBrowser {
+					go func() { _ = browser.Open(url) }()
+				}
+				if ok, info := run.Available(ctx); ok {
+					slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
+				} else {
+					slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+				}
+				if err := httpSrv.Serve(ln); err != nil && err != http.ErrServerClosed {
+					return err
+				}
 			}
 
-			fmt.Printf("\n  symvibe board → %s\n  (Ctrl-C to stop)\n\n", url)
-			if cfg.Server.OpenBrowser {
-				go func() { _ = browser.Open(url) }()
-			}
-
-			if err := httpSrv.Serve(ln); err != nil && err != http.ErrServerClosed {
-				return err
-			}
 			slog.Info("symvibe stopped")
 			return nil
 		},
