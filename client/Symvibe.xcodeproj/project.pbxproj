@@ -11,17 +11,23 @@
 		0E4AEC1D32093302D2B1553D /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
 		15993F71526A380CC9137F2D /* SymvibeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */; };
 		203971F2C96A8EF3F86DD167 /* EngineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533DFB48FD93859F2B67D17 /* EngineManager.swift */; };
+		20D1B6AF06D898BCC57B2A8C /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF380D6F7175D164C2E49FFD /* SymvibeKit */; };
+		22C8BA4D2FC1632BB52B072E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */; };
 		2347E95F24900BB1A7D16401 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F91E279CD9A5267D297D879 /* OnboardingView.swift */; };
 		33ADDC8EA1D8AC74D9DF767C /* ActivityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */; };
+		3EA3F3D9A0536FE9C211A5EB /* SymvibeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		420DBE86D292AA3BB817BF4A /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6B76F6187E8B88B33A558743 /* SymvibeKit */; };
 		42F9421943E7B704B04EDA44 /* EngineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533DFB48FD93859F2B67D17 /* EngineManager.swift */; };
 		5CA1E097EA2100F8D4DDF5D9 /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
 		62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
+		75D24C89A21DD060D3AF5361 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */; };
 		7BFF0E88BC8F0A20DFD4F917 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F91E279CD9A5267D297D879 /* OnboardingView.swift */; };
+		81AAA63EEB9ED6D65A81579F /* SymvibeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0FB5072A8BBD742BCAD6E7 /* SymvibeWidget.swift */; };
 		81D9944597B31BCCEDA6CE4C /* SymvibeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */; };
 		847FAB3F8BC3FC9F80161013 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
 		917304043D126A3DC227C0A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00F71A317448F9FA2C215DC /* ContentView.swift */; };
+		9943820EF3D54EFE3A555E4F /* SymvibeShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */; };
 		9B1F9B405248C471A5E828AF /* StepEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866D9AD7A8BE564297828C9F /* StepEditorView.swift */; };
 		A8370641E8F31226287C7313 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		AFA7BB65E32FA126CE4C72C6 /* StepEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866D9AD7A8BE564297828C9F /* StepEditorView.swift */; };
@@ -29,22 +35,52 @@
 		C41DC7F9A2CB3D02AB160643 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754B7074A7B56E752D222358 /* BoardView.swift */; };
 		CA34E4A7B139C034C5EDC728 /* ActivityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */; };
 		ECCABB055892E8738049C63F /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754B7074A7B56E752D222358 /* BoardView.swift */; };
+		F233B1B61FB29E44F6EC36AF /* SymvibeShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D61FE68D84B2C266DC75D403 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A44C2146FF61C99CE8D8BD82 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 60815499448EB73F5510ABF8;
+			remoteInfo = SymvibeWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9A4D104B725FB375CB2BFC6E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3EA3F3D9A0536FE9C211A5EB /* SymvibeWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2533DFB48FD93859F2B67D17 /* EngineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineManager.swift; sourceTree = "<group>"; };
 		2C05DF751B0AD3D09AB420EA /* client */ = {isa = PBXFileReference; lastKnownFileType = folder; name = client; path = .; sourceTree = SOURCE_ROOT; };
+		3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeShortcuts.swift; sourceTree = "<group>"; };
+		3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SymvibeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityLogView.swift; sourceTree = "<group>"; };
 		5FCBF747EF7A55CD255B6738 /* Symvibe-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Symvibe-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeApp.swift; sourceTree = "<group>"; };
 		6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingQRView.swift; sourceTree = "<group>"; };
 		754B7074A7B56E752D222358 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		866D9AD7A8BE564297828C9F /* StepEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepEditorView.swift; sourceTree = "<group>"; };
 		8F91E279CD9A5267D297D879 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AF6EC7E85B9555FD383620AA /* DoctorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorView.swift; sourceTree = "<group>"; };
 		B3047F873C59E29238A29C1E /* Symvibe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Symvibe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B413B943AB92A8EEF1A40C38 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C00F71A317448F9FA2C215DC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C6353F83CFEF0DF52C3B8115 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CF0FB5072A8BBD742BCAD6E7 /* SymvibeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeWidget.swift; sourceTree = "<group>"; };
 		DB45934DD59A95094F3188C9 /* RepoPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoPickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -65,6 +101,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DC54234784DA0DDF7DACAB70 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20D1B6AF06D898BCC57B2A8C /* SymvibeKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +122,7 @@
 				8F91E279CD9A5267D297D879 /* OnboardingView.swift */,
 				6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */,
 				DB45934DD59A95094F3188C9 /* RepoPickerView.swift */,
+				813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */,
 				866D9AD7A8BE564297828C9F /* StepEditorView.swift */,
 			);
 			path = Views;
@@ -88,6 +133,7 @@
 			children = (
 				E6D96B5BEB1AA21355C44966 /* Packages */,
 				FBBBF7453AC15EF9071F4AAD /* SymvibeApp */,
+				E796D4F148099DC7E08A6B2F /* SymvibeWidget */,
 				B6917DEF0C06A85EE4676477 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -97,6 +143,7 @@
 			children = (
 				5FCBF747EF7A55CD255B6738 /* Symvibe-iOS.app */,
 				B3047F873C59E29238A29C1E /* Symvibe.app */,
+				3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -109,6 +156,16 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		E796D4F148099DC7E08A6B2F /* SymvibeWidget */ = {
+			isa = PBXGroup;
+			children = (
+				C6353F83CFEF0DF52C3B8115 /* Info.plist */,
+				CF0FB5072A8BBD742BCAD6E7 /* SymvibeWidget.swift */,
+			);
+			name = SymvibeWidget;
+			path = Sources/SymvibeWidget;
+			sourceTree = "<group>";
+		};
 		FBBBF7453AC15EF9071F4AAD /* SymvibeApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -116,6 +173,7 @@
 				2533DFB48FD93859F2B67D17 /* EngineManager.swift */,
 				B413B943AB92A8EEF1A40C38 /* Info.plist */,
 				66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */,
+				3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */,
 			);
 			name = SymvibeApp;
 			path = Sources/SymvibeApp;
@@ -124,6 +182,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		60815499448EB73F5510ABF8 /* SymvibeWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C714889BB9780549E3325997 /* Build configuration list for PBXNativeTarget "SymvibeWidget" */;
+			buildPhases = (
+				C26087489975D16BB4154898 /* Sources */,
+				DC54234784DA0DDF7DACAB70 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SymvibeWidget;
+			packageProductDependencies = (
+				AF380D6F7175D164C2E49FFD /* SymvibeKit */,
+			);
+			productName = SymvibeWidget;
+			productReference = 3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		8AC1A5A418D2FDA5A1A178EC /* Symvibe */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FE44C621B65840B742396F90 /* Build configuration list for PBXNativeTarget "Symvibe" */;
@@ -150,10 +227,12 @@
 			buildPhases = (
 				64FF8B26005C91CFE7E67608 /* Sources */,
 				44B4117274B6809B8041BDB1 /* Frameworks */,
+				9A4D104B725FB375CB2BFC6E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AD2CA140698A6EC6B99D7D66 /* PBXTargetDependency */,
 			);
 			name = "Symvibe-iOS";
 			packageProductDependencies = (
@@ -172,6 +251,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					60815499448EB73F5510ABF8 = {
+						ProvisioningStyle = Automatic;
+					};
 					8AC1A5A418D2FDA5A1A178EC = {
 						ProvisioningStyle = Manual;
 					};
@@ -199,6 +281,7 @@
 			targets = (
 				8AC1A5A418D2FDA5A1A178EC /* Symvibe */,
 				B54F68C3E2E8B4CCA9E6F1AB /* Symvibe-iOS */,
+				60815499448EB73F5510ABF8 /* SymvibeWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -238,8 +321,10 @@
 				7BFF0E88BC8F0A20DFD4F917 /* OnboardingView.swift in Sources */,
 				847FAB3F8BC3FC9F80161013 /* PairingQRView.swift in Sources */,
 				62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */,
+				22C8BA4D2FC1632BB52B072E /* SettingsView.swift in Sources */,
 				9B1F9B405248C471A5E828AF /* StepEditorView.swift in Sources */,
 				15993F71526A380CC9137F2D /* SymvibeApp.swift in Sources */,
+				F233B1B61FB29E44F6EC36AF /* SymvibeShortcuts.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,14 +340,51 @@
 				2347E95F24900BB1A7D16401 /* OnboardingView.swift in Sources */,
 				65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */,
 				A8370641E8F31226287C7313 /* RepoPickerView.swift in Sources */,
+				75D24C89A21DD060D3AF5361 /* SettingsView.swift in Sources */,
 				AFA7BB65E32FA126CE4C72C6 /* StepEditorView.swift in Sources */,
 				81D9944597B31BCCEDA6CE4C /* SymvibeApp.swift in Sources */,
+				9943820EF3D54EFE3A555E4F /* SymvibeShortcuts.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C26087489975D16BB4154898 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				81AAA63EEB9ED6D65A81579F /* SymvibeWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		AD2CA140698A6EC6B99D7D66 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 60815499448EB73F5510ABF8 /* SymvibeWidget */;
+			targetProxy = D61FE68D84B2C266DC75D403 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		220E5628C1FC9D0D33EBB981 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = SymvibeWidget.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = Sources/SymvibeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.symaira.Symvibe.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		25B3DC0D6261D4FFA4784571 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -332,6 +454,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Symvibe.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
@@ -368,6 +491,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Symvibe.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
@@ -439,6 +563,25 @@
 			};
 			name = Release;
 		};
+		EE9905E706E6D6D99B513E5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = SymvibeWidget.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = Sources/SymvibeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.symaira.Symvibe.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		F3BF39F2E1D2E490A8F74414 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -461,6 +604,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C714889BB9780549E3325997 /* Build configuration list for PBXNativeTarget "SymvibeWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				220E5628C1FC9D0D33EBB981 /* Debug */,
+				EE9905E706E6D6D99B513E5B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		CB998844C02EEB0B712A714E /* Build configuration list for PBXNativeTarget "Symvibe-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -503,6 +655,10 @@
 			productName = SymvibeKit;
 		};
 		7798CDD0F1DBBACD568BE3F9 /* SymvibeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SymvibeKit;
+		};
+		AF380D6F7175D164C2E49FFD /* SymvibeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SymvibeKit;
 		};

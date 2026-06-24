@@ -5,6 +5,7 @@ struct SettingsView: View {
     let connectionStore: ConnectionStore
 
     @State private var showDisconnectAlert = false
+    @State private var pushManager = PushManager()
 
     var body: some View {
         Form {
@@ -24,6 +25,33 @@ struct SettingsView: View {
                     Text("Not connected")
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            Section("Notifications") {
+                Toggle(isOn: Binding(
+                    get: { pushManager.isEnabled },
+                    set: { pushManager.isEnabled = $0 }
+                )) {
+                    Label("Push Notifications", systemImage: "bell.badge")
+                }
+
+                if pushManager.isEnabled {
+                    if pushManager.isAuthorized {
+                        LabeledContent("Status", value: "Authorized")
+                    } else {
+                        LabeledContent("Status", value: "Not Authorized")
+                            .foregroundStyle(.orange)
+                    }
+
+                    if let token = pushManager.deviceTokenHex {
+                        LabeledContent("Device Token", value: String(token.prefix(16)) + "…")
+                            .font(.caption.monospaced())
+                    }
+                }
+
+                Text("Receive push notifications when a step completes, fails, or needs review. Requires a server-side push relay (coming soon).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Account Deletion") {

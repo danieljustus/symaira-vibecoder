@@ -68,6 +68,8 @@ targets:
       - path: Sources/SymvibeApp
         excludes:
           - "**/*.xcassets"
+    entitlements:
+      path: Symvibe.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.symaira.Symvibe
@@ -78,3 +80,25 @@ targets:
     dependencies:
       - package: SymvibeClient
         product: SymvibeKit
+      - target: SymvibeWidget
+
+  SymvibeWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget:
+      iOS: "17.0"
+    sources:
+      - path: Sources/SymvibeWidget
+    entitlements:
+      path: SymvibeWidget.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.symaira.Symvibe.widget
+        INFOPLIST_FILE: Sources/SymvibeWidget/Info.plist
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: ""
+    dependencies:
+      - package: SymvibeClient
+        product: SymvibeKit
+        embed: false

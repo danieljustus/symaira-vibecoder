@@ -50,6 +50,8 @@ public final class BoardStore {
                 self.isConnected = true
                 self.lastError = nil
 
+                WidgetShared.writeConnection(baseURL: baseURL, token: token)
+
                 await load()
                 startSSE()
                 return
@@ -72,6 +74,8 @@ public final class BoardStore {
         cycle = nil
         runState = nil
         lastError = nil
+        WidgetShared.clearAll()
+        WidgetShared.clearConnection()
     }
 
     // MARK: - Demo Mode
@@ -101,6 +105,7 @@ public final class BoardStore {
         do {
             cycle = try await apiClient.cycle()
             lastError = nil
+            syncWidgetData()
         } catch {
             lastError = error.localizedDescription
         }
@@ -147,6 +152,7 @@ public final class BoardStore {
         switch event.type {
         case "board":
             await load()
+            syncWidgetData()
         case "run_state":
             if let state = event.state {
                 runState = RunState(
@@ -159,12 +165,14 @@ public final class BoardStore {
                 if state == "idle" {
                     activityStore?.clear()
                 }
+                syncWidgetData()
             }
         case "step_status":
             if let stepID = event.stepID,
                let statusStr = event.status,
                let newStatus = StepStatus(rawValue: statusStr) {
                 updateStepStatus(stepID: stepID, status: newStatus)
+                syncWidgetData()
             }
         case "log", "error":
             activityStore?.append(event: event)
@@ -184,6 +192,55 @@ public final class BoardStore {
                 }
             }
         }
+    }
+
+    private func syncWidgetData() {
+        guard let cycle else {
+            WidgetShared.clearAll()
+            return
+        }
+
+        var activeStepName = "Idle"
+        var activeStepID = ""
+        var activeStatus = StepStatus.pending.rawValue
+        var activePhase = ""
+
+        for phase in cycle.phases {
+            for step in phase.steps {
+                if step.status == .inProgress {
+                    activeStepName = step.name
+                    activeStepID = step.id
+                    activeStatus = step.status.rawValue
+                    activePhase = phase.name
+                    break
+                }
+            }
+            if !activeStepID.isEmpty { break }
+        }
+
+        if activeStepID.isEmpty {
+            for phase in cycle.phases {
+                for step in phase.steps {
+                    if step.status == .needsReview || step.status == .failed || step.status == .blocked {
+                        activeStepName = step.name
+                        activeStepID = step.id
+                        activeStatus = step.status.rawValue
+                        activePhase = phase.name
+                        break
+                    }
+                }
+                if !activeStepID.isEmpty { break }
+            }
+        }
+
+        WidgetShared.writeCurrentStep(
+            name: activeStepName,
+            stepID: activeStepID,
+            status: activeStatus,
+            phaseName: activePhase,
+            cycleName: cycle.name,
+            runState: runState?.state ?? "idle"
+        )
     }
 
     // MARK: - Run Control
