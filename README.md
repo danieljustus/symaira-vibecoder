@@ -11,6 +11,8 @@ verschiebbaren Karten zusammen (hinzufügen / entfernen / bearbeiten / per
 Drag-&-Drop umsortieren) und sagst dem Tool, es soll loslaufen — der Rest
 passiert autonom.
 
+![symvibe board in action](docs/symvibe-board.png)
+
 ```
   symvibe serve  →  http://127.0.0.1:4317
   ┌──────────── Cycle ────────────────────────────────┐
