@@ -122,6 +122,19 @@ echten Code gegen dein Repo ausführen. Details: [SECURITY.md](SECURITY.md).
 Go-Core (`cmd/symvibe`, `internal/{config,engine,runner,server,version}`) +
 eingebettetes Board (`web/`). Siehe [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## iOS / macOS-Client
+
+Ein SwiftPM-Skelett liegt unter `client/`. `SymvibeKit` enthält REST-Client,
+SSE-Parser, TLS-Pinning und `Codable`-Modelle, die 1:1 den Go-Typen folgen.
+
+```bash
+cd client
+swift build                # macOS
+# iOS: in Xcode öffnen oder xcodebuild mit iOS-Simulator-Destination
+```
+
+Der Client benötigt iOS 17 / macOS 14.
+
 ## Lizenz
 
 MIT — siehe [LICENSE](LICENSE).
