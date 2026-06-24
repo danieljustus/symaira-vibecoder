@@ -1,5 +1,10 @@
 # symvibe — Vibe Coding Baukasten
 
+[![CI](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml/badge.svg)](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/danieljustus/symaira-vibecoder)](https://github.com/danieljustus/symaira-vibecoder/releases)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/danieljustus/symaira-vibecoder)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Eine schlanke grafische Oberfläche, die deinen **Cycle** (Cleaning → Code
 > Review → Planung → Coden → PR-Check → GH Alerts → Pre-Release → Release)
 > autonom durchläuft — angetrieben von **opencode**, mit Modell-Auswahl pro
@@ -10,6 +15,16 @@ das ein **Baukasten-Board** auf `127.0.0.1` serviert. Du baust deinen Cycle aus
 verschiebbaren Karten zusammen (hinzufügen / entfernen / bearbeiten / per
 Drag-&-Drop umsortieren) und sagst dem Tool, es soll loslaufen — der Rest
 passiert autonom.
+
+![symvibe board in action](docs/symvibe-board.png)
+
+## Features
+
+- **Baukasten UX** — drag-and-drop cycle builder with customizable phases and steps
+- **opencode integration** — drives opencode headless via `Runner` interface (no fork required)
+- **Model bindings per category/step** — assign different AI models to different parts of your cycle
+- **Autonomous cycle execution** — run your entire workflow with a single click
+- **iOS/macOS client** — native SwiftUI client for monitoring and controlling cycles
 
 ```
   symvibe serve  →  http://127.0.0.1:4317
