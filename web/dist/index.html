@@ -3,139 +3,1372 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>symvibe · Baukasten</title>
+<title>symvibe · Baukasten Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..1000&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f1115; --panel: #161a21; --panel-2: #1c222b; --line: #272e39;
-    --txt: #d7dce3; --muted: #8b94a3; --faint: #5b6473;
-    --accent: #6aa0ff; --accent-dim: #2c3a55;
-    --ok: #5bbf8a; --warn: #e0b15a; --bad: #e0726b; --run: #6aa0ff;
-    --radius: 10px; --shadow: 0 1px 0 rgba(255,255,255,.02), 0 6px 18px rgba(0,0,0,.25);
+  /* ==========================================================================
+     THEME VARIABLES SYSTEM (NATIVE CSS VARIABLES)
+     ========================================================================== */
+
+  /* 1. Theme: Symaira Gold (Default Dark Mode) */
+  :root,
+  html[data-theme="symaira"] {
+    --bg-root: #0D0C0A; /* Deep Warm Charcoal Obsidian */
+    --bg-panel: #12110e;
+    --bg-panel-alt: #1a1814;
+    --bg-card: rgba(18, 17, 14, 0.65);
+    --bg-card-hover: rgba(26, 24, 20, 0.8);
+    
+    --border-color: rgba(229, 195, 151, 0.08); /* Gold-tinted translucent border */
+    --border-color-strong: rgba(229, 195, 151, 0.18);
+    
+    --color-accent: #E5C397; /* Gold primary */
+    --color-accent-hover: #F8E6CD; /* Gold secondary */
+    --color-accent-dim: rgba(229, 195, 151, 0.12);
+    --color-accent-glow: rgba(229, 195, 151, 0.3);
+    
+    --text-primary: #F5F4F0; /* Warm Bone */
+    --text-secondary: #B5AEA5; /* Warm Sand Silver */
+    --text-muted: #6E6860; /* Soft warm gray */
+    
+    --color-success: #10b981;
+    --color-success-dim: rgba(16, 185, 129, 0.12);
+    --color-warning: #f59e0b;
+    --color-warning-dim: rgba(245, 158, 11, 0.12);
+    --color-danger: #ef4444;
+    --color-danger-dim: rgba(239, 68, 68, 0.12);
+    --color-in-progress: #EEDCC4; /* Ice Primary */
+    --color-in-progress-dim: rgba(238, 220, 196, 0.12);
+
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+    
     font-synthesis: none;
   }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg:#f5f6f8; --panel:#fff; --panel-2:#f0f2f5; --line:#e3e6ea;
-      --txt:#1d2530; --muted:#5e6675; --faint:#9aa2b1; --accent-dim:#dbe6ff;
+
+  /* Symaira Gold - Light Mode Override */
+  html[data-theme="symaira"][data-mode="light"] {
+    --bg-root: #fdfbf7;
+    --bg-panel: #f7f4ec;
+    --bg-panel-alt: #ede9db;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fbfaf5;
+    
+    --border-color: rgba(163, 128, 84, 0.15);
+    --border-color-strong: rgba(163, 128, 84, 0.3);
+    
+    --color-accent: #a38054; /* Warm Sand Bronze */
+    --color-accent-hover: #85653c;
+    --color-accent-dim: rgba(163, 128, 84, 0.1);
+    --color-accent-glow: rgba(163, 128, 84, 0.2);
+    
+    --text-primary: #3c352d; /* Warm Charcoal */
+    --text-secondary: #6e6459;
+    --text-muted: #9a8e80;
+    
+    --color-success: #059669;
+    --color-success-dim: rgba(5, 150, 105, 0.1);
+    --color-warning: #d97706;
+    --color-warning-dim: rgba(217, 119, 6, 0.1);
+    --color-danger: #dc2626;
+    --color-danger-dim: rgba(220, 38, 38, 0.1);
+    --color-in-progress: #85653c;
+    --color-in-progress-dim: rgba(133, 101, 60, 0.1);
+    --shadow: 0 8px 30px rgba(163, 128, 84, 0.08);
+  }
+
+  /* 2. Theme: Slate / Steel (Dark Mode) */
+  html[data-theme="slate"] {
+    --bg-root: #0b0f17;
+    --bg-panel: #111622;
+    --bg-panel-alt: #161e30;
+    --bg-card: #192135;
+    --bg-card-hover: #1e2840;
+    
+    --border-color: rgba(255, 255, 255, 0.06);
+    --border-color-strong: rgba(255, 255, 255, 0.12);
+    
+    --color-accent: #3b82f6;
+    --color-accent-hover: #60a5fa;
+    --color-accent-dim: rgba(59, 130, 246, 0.15);
+    --color-accent-glow: rgba(59, 130, 246, 0.3);
+    
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --color-success: #10b981;
+    --color-success-dim: rgba(16, 185, 129, 0.12);
+    --color-warning: #f59e0b;
+    --color-warning-dim: rgba(245, 158, 11, 0.12);
+    --color-danger: #ef4444;
+    --color-danger-dim: rgba(239, 68, 68, 0.12);
+    --color-in-progress: #0ea5e9;
+    --color-in-progress-dim: rgba(14, 165, 233, 0.12);
+
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+
+  /* Slate/Steel - Light Mode Override */
+  html[data-theme="slate"][data-mode="light"] {
+    --bg-root: #f8fafc;
+    --bg-panel: #ffffff;
+    --bg-panel-alt: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color-strong: rgba(0, 0, 0, 0.16);
+    
+    --color-accent: #2563eb;
+    --color-accent-hover: #1d4ed8;
+    --color-accent-dim: rgba(37, 99, 235, 0.1);
+    --color-accent-glow: rgba(37, 99, 235, 0.2);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --color-success: #059669;
+    --color-success-dim: rgba(5, 150, 105, 0.1);
+    --color-warning: #d97706;
+    --color-warning-dim: rgba(217, 119, 6, 0.1);
+    --color-danger: #dc2626;
+    --color-danger-dim: rgba(220, 38, 38, 0.1);
+    --color-in-progress: #0284c7;
+    --color-in-progress-dim: rgba(2, 132, 199, 0.1);
+    --shadow: 0 8px 30px rgba(37, 99, 235, 0.05);
+  }
+
+  /* 3. Theme: Cyber Punk (Dark Mode) */
+  html[data-theme="cyberpunk"] {
+    --bg-root: #0c0714;
+    --bg-panel: #150d22;
+    --bg-panel-alt: #201435;
+    --bg-card: rgba(32, 20, 53, 0.65);
+    --bg-card-hover: rgba(45, 28, 75, 0.8);
+    
+    --border-color: rgba(255, 0, 127, 0.15);
+    --border-color-strong: rgba(0, 240, 255, 0.3);
+    
+    --color-accent: #ff007f;
+    --color-accent-hover: #ff3399;
+    --color-accent-dim: rgba(255, 0, 127, 0.15);
+    --color-accent-glow: rgba(255, 0, 127, 0.4);
+    
+    --text-primary: #ffffff;
+    --text-secondary: #b8a9c9;
+    --text-muted: #786090;
+    
+    --color-success: #00ff66;
+    --color-success-dim: rgba(0, 255, 102, 0.15);
+    --color-warning: #ffe600;
+    --color-warning-dim: rgba(255, 230, 0, 0.15);
+    --color-danger: #ff2a2a;
+    --color-danger-dim: rgba(255, 42, 42, 0.15);
+    --color-in-progress: #00f0ff;
+    --color-in-progress-dim: rgba(0, 240, 255, 0.15);
+    --shadow: 0 8px 30px rgba(255, 0, 127, 0.15);
+  }
+
+  /* Cyber Punk - Light Mode Override */
+  html[data-theme="cyberpunk"][data-mode="light"] {
+    --bg-root: #fff5fb;
+    --bg-panel: #ffe8f4;
+    --bg-panel-alt: #ffd1e8;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fff0f8;
+    
+    --border-color: rgba(255, 0, 127, 0.2);
+    --border-color-strong: rgba(0, 180, 255, 0.4);
+    
+    --color-accent: #d0006f;
+    --color-accent-hover: #a00050;
+    --color-accent-dim: rgba(255, 0, 127, 0.1);
+    --color-accent-glow: rgba(255, 0, 127, 0.2);
+    
+    --text-primary: #2a0c1e;
+    --text-secondary: #683d56;
+    --text-muted: #9a788c;
+    
+    --color-success: #00a352;
+    --color-success-dim: rgba(0, 163, 82, 0.1);
+    --color-warning: #b39b00;
+    --color-warning-dim: rgba(179, 155, 0, 0.1);
+    --color-danger: #d91616;
+    --color-danger-dim: rgba(217, 22, 22, 0.1);
+    --color-in-progress: #008fa8;
+    --color-in-progress-dim: rgba(0, 143, 168, 0.1);
+    --shadow: 0 8px 30px rgba(255, 0, 127, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; }
+  body {
+    background: var(--bg-root);
+    color: var(--text-primary);
+    font-family: 'Roboto Flex', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    
+    /* Blueprint Grid background from symaira.com */
+    background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: center;
+  }
+
+  /* ---------------- Scrollbars ---------------- */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-color-strong); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+  /* ---------------- Header ---------------- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    flex: 0 0 auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .brand {
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .brand b { color: var(--color-accent); font-weight: 800; }
+  .brand small {
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-panel-alt);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .runpill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-panel-alt);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    font-size: 13px;
+    font-weight: 550;
+    color: var(--text-secondary);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .status-dot.running {
+    background: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent);
+    animation: pulse 1.5s infinite;
+  }
+  .status-dot.paused {
+    background: var(--color-warning);
+    box-shadow: 0 0 8px var(--color-warning);
+  }
+  .status-dot.idle {
+    background: var(--text-muted);
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .spacer { flex: 1; }
+
+  /* Theme Pickers Styles */
+  .theme-picker-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .picker-select {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    max-width: 140px;
+  }
+  .picker-select:hover {
+    border-color: var(--color-accent);
+    background: var(--bg-card-hover);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* ---------------- Buttons ---------------- */
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  button:hover:not(:disabled) {
+    background: var(--bg-card-hover);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+  button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  button.primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--bg-root);
+  }
+  button.primary:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    box-shadow: 0 0 12px var(--color-accent-glow);
+  }
+  button.danger:hover:not(:disabled) {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    background: var(--color-danger-dim);
+  }
+  button.ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-secondary);
+  }
+  button.ghost:hover:not(:disabled) {
+    background: var(--bg-panel-alt);
+    color: var(--text-primary);
+  }
+  button.tiny {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+  }
+  button.icon-btn {
+    padding: 6px;
+    border-radius: 50%;
+    aspect-ratio: 1;
+    justify-content: center;
+  }
+
+  .doctor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-panel-alt);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+  }
+  .doctor .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .doctor .dot.ok { background: var(--color-success); box-shadow: 0 0 6px var(--color-success); }
+  .doctor .dot.bad { background: var(--color-danger); box-shadow: 0 0 6px var(--color-danger); }
+
+  /* ---------------- Main Layout ---------------- */
+  main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* Board Area */
+  .board {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 24px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  /* Phase Column */
+  .phase {
+    width: 300px;
+    flex-shrink: 0;
+    max-height: 100%;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+  .phase:focus-within {
+    border-color: var(--border-color-strong);
+  }
+  .phase-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-panel);
+  }
+  .phase-head .pno {
+    background: var(--bg-panel-alt);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+  }
+  .phase-head .pname {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 15px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+  .phase-head .pname:hover {
+    background: var(--bg-panel-alt);
+  }
+  .phase-head .pname-input {
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    padding: 2px 4px;
+    width: 100%;
+    outline: none;
+    flex: 1;
+  }
+
+  .steps {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 50px;
+  }
+  .steps.dragover {
+    outline: 2px dashed var(--color-accent);
+    outline-offset: -4px;
+    border-radius: 8px;
+    background: var(--bg-panel-alt);
+  }
+
+  /* ---------------- Step Card ---------------- */
+  .card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .card:hover {
+    border-color: var(--color-accent);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  }
+  .card.disabled {
+    opacity: 0.5;
+  }
+  .card.disabled:hover {
+    opacity: 0.7;
+  }
+  .card.active {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent) inset, 0 4px 12px var(--color-accent-dim);
+  }
+  .card:active {
+    cursor: grabbing;
+  }
+  
+  .card-icon {
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+  .lucide-icon {
+    stroke-width: 2.2px;
+  }
+  .card-icon.pending { color: var(--text-muted); }
+  .card-icon.in_progress { color: var(--color-accent); animation: spin-loader 1.5s linear infinite; }
+  .card-icon.done { color: var(--color-success); }
+  .card-icon.skipped { color: var(--text-muted); opacity: 0.6; }
+  .card-icon.failed { color: var(--color-danger); }
+  .card-icon.blocked, .card-icon.needs_review { color: var(--color-warning); }
+
+  @keyframes spin-loader {
+    to { transform: rotate(360deg); }
+  }
+
+  .card-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .card-sid {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .card-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-binds {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge.skill { color: var(--color-accent); border-color: var(--color-accent-dim); background: var(--color-accent-dim); }
+  .badge.cat { color: var(--text-secondary); border-color: var(--border-color-strong); }
+  .badge.ov { color: var(--color-warning); border-color: var(--color-warning-dim); background: var(--color-warning-dim); }
+  .badge.agent { color: var(--color-accent); border-color: var(--color-accent-dim); background: var(--color-accent-dim); }
+  .badge.skip { color: var(--text-muted); border-color: var(--border-color); text-decoration: line-through; }
+  .badge.prompt { color: var(--color-success); border-color: var(--color-success-dim); }
+
+  .card-actions {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    background: var(--bg-panel);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    border: 1px solid var(--border-color);
+  }
+  .card:hover .card-actions {
+    opacity: 1;
+  }
+  .card-actions button {
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 4px;
+  }
+  .card-actions button:hover {
+    color: var(--text-primary);
+    background: var(--bg-panel-alt);
+  }
+  .card-actions button.run-btn:hover { color: var(--color-success); }
+  .card-actions button.del-btn:hover { color: var(--color-danger); }
+
+  /* ---------------- Activity Feed Panel ---------------- */
+  .feed {
+    width: 400px;
+    border-left: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+  .feed-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 700;
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feed-head small {
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .feed-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-panel-alt);
+    padding: 2px 8px;
+    gap: 2px;
+  }
+  .feed-tab {
+    padding: 6px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .feed-tab:hover {
+    color: var(--text-primary);
+    background: var(--border-color);
+  }
+  .feed-tab.active {
+    color: var(--color-accent);
+    background: var(--bg-panel);
+    box-shadow: 0 1px 0 var(--bg-panel);
+  }
+  .feed-filter {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .search-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .search-wrapper input {
+    width: 100%;
+    padding: 5px 8px 5px 28px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+  }
+  .search-wrapper input:focus {
+    border-color: var(--color-accent);
+  }
+  .search-wrapper .search-icon {
+    position: absolute;
+    left: 8px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: #080706; /* obsidian black background for logs */
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+  }
+  .log .ln {
+    padding: 2px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.01);
+  }
+  .log .ln .k {
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-right: 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 45px;
+  }
+  .log .ln.error { color: var(--color-danger); }
+  .log .ln.error .k { color: var(--color-danger); }
+  .log .ln.tool { color: #d8b4fe; }
+  .log .ln.tool .k { color: #c084fc; }
+  .log .ln.agent { color: #fef08a; }
+  .log .ln.agent .k { color: #fde047; }
+  .log .ln.log { color: var(--text-secondary); }
+
+  .feed-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-panel-alt);
+  }
+  
+  .legend {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  
+  /* ---------------- Slide-Out Drawer ---------------- */
+  .drawer {
+    position: fixed;
+    top: 70px;
+    right: 0;
+    bottom: 0;
+    width: 440px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .drawer.open {
+    transform: translateX(0);
+  }
+  .drawer-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-head h3 {
+    margin: 0;
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .drawer-head .step-id-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--color-accent);
+    background: var(--color-accent-dim);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .drawer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-panel-alt);
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+  .drawer-section-title {
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Form Elements */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.inline {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  input[type=text], select, textarea {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  input[type=text]:focus, select:focus, textarea:focus {
+    border-color: var(--color-accent);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  
+  /* Modern switches styling */
+  .switch-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--border-color-strong);
+    transition: .2s;
+    border-radius: 20px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--bg-panel);
+    transition: .2s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background-color: var(--color-success);
+  }
+  input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: #fff;
+  }
+
+  .drawer-foot {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+    background: var(--bg-panel-alt);
+  }
+  .drawer-foot button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* ---------------- Custom Dialog Modals ---------------- */
+  dialog {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    color: var(--text-primary);
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    outline: none;
+    z-index: 1000;
+  }
+  dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Top Layer Animation Rules */
+  dialog, dialog::backdrop {
+    transition:
+      opacity 0.25s ease-out,
+      transform 0.25s ease-out,
+      display 0.25s allow-discrete,
+      overlay 0.25s allow-discrete;
+  }
+  dialog {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  dialog[open] {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.9) translateY(20px);
     }
   }
-  * { box-sizing: border-box; }
-  html,body { margin:0; height:100%; }
-  body {
-    background: var(--bg); color: var(--txt); font: 14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
-    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0);
   }
-  header {
-    display:flex; align-items:center; gap:14px; padding:10px 16px; border-bottom:1px solid var(--line);
-    background:var(--panel); flex:0 0 auto;
+  dialog[open]::backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+    @starting-style {
+      background-color: rgba(0, 0, 0, 0);
+    }
   }
-  .brand { font-weight:650; letter-spacing:.2px; }
-  .brand b { color:var(--accent); }
-  .brand small { color:var(--faint); font-weight:400; margin-left:6px; }
-  .spacer { flex:1; }
-  .doctor { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--faint); }
-  .dot.ok { background:var(--ok); } .dot.bad { background:var(--bad); }
-  .toolbar { display:flex; gap:6px; flex-wrap:wrap; }
-  button {
-    font:inherit; color:var(--txt); background:var(--panel-2); border:1px solid var(--line);
-    border-radius:8px; padding:6px 11px; cursor:pointer; transition:.12s;
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
   }
-  button:hover:not(:disabled) { border-color:var(--accent); }
-  button:disabled { opacity:.4; cursor:not-allowed; }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#08111f; font-weight:600; }
-  button.ghost { background:transparent; }
-  button.tiny { padding:2px 7px; font-size:12px; }
-  main { display:flex; flex:1; min-height:0; }
-  .board { flex:1; overflow:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
-  .phase {
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  .modal-head h3 {
+    margin: 0;
+    font-family: 'Roboto Flex', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
   }
-  .phase > .phase-head {
-    display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line);
+  .modal-head .lucide-icon {
+    color: var(--color-warning);
   }
-  .phase-head .pname { font-weight:600; }
-  .phase-head .pno { color:var(--faint); font-variant-numeric:tabular-nums; font-size:12px; min-width:18px; }
-  .steps { padding:8px; display:flex; flex-direction:column; gap:7px; min-height:14px; }
-  .steps.dragover { outline:2px dashed var(--accent-dim); outline-offset:-4px; border-radius:8px; }
-  .card {
-    display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--panel-2);
-    border:1px solid var(--line); border-radius:9px; cursor:grab;
+  .modal-body {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
   }
-  .card.disabled { opacity:.5; }
-  .card.active { border-color:var(--run); box-shadow:0 0 0 1px var(--run) inset; }
-  .card:active { cursor:grabbing; }
-  .glyph { width:20px; text-align:center; font-size:15px; flex:0 0 auto; }
-  .glyph.pending { color:var(--faint); }
-  .glyph.in_progress { color:var(--run); animation:spin 1.1s linear infinite; }
-  .glyph.done { color:var(--ok); } .glyph.skipped { color:var(--faint); }
-  .glyph.failed { color:var(--bad); } .glyph.blocked { color:var(--warn); }
-  .glyph.needs_review { color:var(--warn); }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .card .meta { flex:1; min-width:0; }
-  .card .title { display:flex; align-items:center; gap:8px; }
-  .card .sid { color:var(--faint); font-size:11px; font-variant-numeric:tabular-nums; }
-  .card .name { font-weight:550; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .card .binds { display:flex; gap:6px; margin-top:3px; flex-wrap:wrap; }
-  .badge {
-    font-size:11px; color:var(--muted); background:var(--panel); border:1px solid var(--line);
-    border-radius:6px; padding:1px 6px;
+  .modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
   }
-  .badge.skill { color:var(--accent); border-color:var(--accent-dim); }
-  .badge.ov { color:var(--warn); border-color:var(--warn); }
-  .card .actions { display:flex; gap:4px; align-items:center; opacity:0; transition:.12s; }
-  .card:hover .actions { opacity:1; }
-  select, input[type=text] {
-    font:inherit; color:var(--txt); background:var(--panel); border:1px solid var(--line);
-    border-radius:6px; padding:3px 6px; font-size:12px; max-width:150px;
+
+  /* ---------------- Toast Notification ---------------- */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .feed {
-    flex:0 0 360px; border-left:1px solid var(--line); background:var(--panel);
-    display:flex; flex-direction:column; min-height:0;
+  .toast {
+    background: #0f172a;
+    border: 1px solid var(--border-color-strong);
+    border-left: 4px solid var(--color-accent);
+    color: var(--text-primary);
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    font-weight: 550;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slide-in-toast 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  .feed-head { padding:9px 12px; border-bottom:1px solid var(--line); font-weight:600; display:flex; gap:8px; align-items:center; }
-  .feed-head small { color:var(--faint); font-weight:400; }
-  .log { flex:1; overflow:auto; padding:8px 12px; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
-  .log .ln { padding:1px 0; color:var(--muted); white-space:pre-wrap; word-break:break-word; }
-  .log .ln .k { color:var(--faint); margin-right:6px; }
-  .log .ln.error { color:var(--bad); } .log .ln.tool .k { color:var(--accent); }
-  .log .ln.agent .k { color:var(--warn); }
-  .legend { padding:8px 12px; border-top:1px solid var(--line); color:var(--faint); font-size:11px; display:flex; gap:10px; flex-wrap:wrap; }
-  .runpill { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
-  .runpill .dot.running { background:var(--run); } .runpill .dot.paused { background:var(--warn); }
-  .hint { color:var(--faint); font-size:12px; padding:0 4px; }
+  .toast.error { border-left-color: var(--color-danger); }
+  .toast.success { border-left-color: var(--color-success); }
+  @keyframes slide-in-toast {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
 </style>
 </head>
 <body>
+
 <header>
   <div class="brand">sym<b>vibe</b><small>Baukasten</small></div>
-  <div class="runpill"><span class="dot" id="runDot"></span><span id="runLabel">idle</span></div>
-  <div class="spacer"></div>
-  <div class="toolbar" id="toolbar">
-    <button class="primary" id="btnRun">▶ Run Cycle</button>
-    <button id="btnPause" disabled>❚❚ Pause</button>
-    <button id="btnResume" disabled>▶ Resume</button>
-    <button id="btnCancel" disabled>✕ Cancel</button>
-    <button class="ghost" id="btnAddPhase">+ Phase</button>
+  
+  <div class="runpill">
+    <span class="status-dot" id="runDot"></span>
+    <span id="runLabel">Idle</span>
   </div>
-  <div class="doctor" id="doctor"><span class="dot"></span><span>checking…</span></div>
+
+  <div class="spacer"></div>
+
+  <!-- Theme Picker Dropdowns -->
+  <div class="theme-picker-group">
+    <select id="themeSelector" class="picker-select" title="Theme">
+      <option value="symaira">🎨 Symaira Gold</option>
+      <option value="slate">🎨 Slate / Steel</option>
+      <option value="cyberpunk">🎨 Cyber Punk</option>
+    </select>
+    <select id="modeSelector" class="picker-select" title="Modus">
+      <option value="dark">🌙 Dark</option>
+      <option value="light">☀️ Light</option>
+      <option value="system">💻 System</option>
+    </select>
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <button class="primary" id="btnRun" title="Autonomen Cycle ab aktueller Position starten">
+      <span id="btnRunIcon"></span> Run Cycle
+    </button>
+    <button id="btnPause" disabled>
+      <span id="btnPauseIcon"></span> Pause
+    </button>
+    <button id="btnResume" disabled>
+      <span id="btnResumeIcon"></span> Resume
+    </button>
+    <button class="danger" id="btnCancel" disabled>
+      <span id="btnCancelIcon"></span> Cancel
+    </button>
+    <button class="ghost" id="btnAddPhase">
+      <span id="btnAddPhaseIcon"></span> + Phase
+    </button>
+  </div>
+
+  <div class="doctor" id="doctor">
+    <span class="dot"></span>
+    <span>Checking backend status…</span>
+  </div>
 </header>
+
 <main>
+  <!-- Kanban Board Columns -->
   <div class="board" id="board"></div>
+
+  <!-- Activity Console -->
   <aside class="feed">
-    <div class="feed-head">Activity <small id="feedStep"></small></div>
+    <div class="feed-head">
+      <span id="iconTerminal"></span>
+      Activity Log <small id="feedStep"></small>
+    </div>
+    
+    <div class="feed-tabs">
+      <button class="feed-tab active" data-tab="all">All</button>
+      <button class="feed-tab" data-tab="engine">Engine</button>
+      <button class="feed-tab" data-tab="tool">Tool Outputs</button>
+      <button class="feed-tab" data-tab="error">Errors</button>
+    </div>
+
+    <div class="feed-filter">
+      <div class="search-wrapper">
+        <span class="search-icon" id="iconSearch"></span>
+        <input type="text" id="logSearch" placeholder="Filter logs..." />
+      </div>
+      <button class="tiny ghost" id="btnClearLogs" title="Clear panel logs">Clear</button>
+      <button class="tiny ghost" id="btnCopyLogs" title="Copy logs to clipboard">
+        <span id="iconCopy"></span>
+      </button>
+    </div>
+
     <div class="log" id="log"></div>
-    <div class="legend">
-      <span>○ pending</span><span>◐ running</span><span>✓ done</span>
-      <span>– skipped</span><span>✕ failed</span><span>⦸ blocked</span><span>! review</span>
+
+    <div class="feed-footer">
+      <div class="legend">
+        <span><span class="dot" style="background:var(--text-muted)"></span> pending</span>
+        <span><span class="dot" style="background:var(--color-accent)"></span> active</span>
+        <span><span class="dot" style="background:var(--color-success)"></span> done</span>
+        <span><span class="dot" style="background:var(--text-muted);opacity:0.6)"></span> skipped</span>
+        <span><span class="dot" style="background:var(--color-danger)"></span> failed</span>
+      </div>
+      <button class="tiny ghost" id="btnScrollLock" title="Toggle Auto-Scroll">
+        <span id="iconScroll"></span>
+      </button>
     </div>
   </aside>
+
+  <!-- Step Editor Slide-out Drawer -->
+  <div class="drawer" id="editDrawer">
+    <div class="drawer-head">
+      <h3><span id="iconSettings"></span> Configure Step</h3>
+      <span class="step-id-tag" id="editStepId">s1</span>
+      <button class="ghost icon-btn" id="btnCloseDrawer"><span id="iconClose"></span></button>
+    </div>
+    
+    <div class="drawer-body">
+      <!-- General section -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">General Settings</div>
+        
+        <div class="form-group">
+          <label for="stepName">Step Name</label>
+          <input type="text" id="stepName" placeholder="e.g. Run Linter" />
+        </div>
+        
+        <div class="form-group inline">
+          <label for="stepEnabled">Enabled State</label>
+          <label class="switch-container">
+            <span class="switch">
+              <input type="checkbox" id="stepEnabled" />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Execution Binding section -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">Execution Binding</div>
+        
+        <div class="form-group">
+          <label for="stepSkill">Bound Skill</label>
+          <select id="stepSkill"></select>
+        </div>
+        
+        <div class="form-group">
+          <label for="stepCategory">Category Model-Binding</label>
+          <select id="stepCategory"></select>
+        </div>
+        
+        <div class="form-group">
+          <label for="stepAgent">Agent Override</label>
+          <select id="stepAgent"></select>
+        </div>
+      </div>
+
+      <!-- Prompt Suffix -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">Prompt Instructions</div>
+        
+        <div class="form-group">
+          <label for="stepPromptSuffix">Prompt Suffix (Custom contextual guidance)</label>
+          <textarea id="stepPromptSuffix" placeholder="Add extra rules, paths, or constraints for the model..."></textarea>
+        </div>
+      </div>
+
+      <!-- Model Override section -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">
+          Model Override
+          <label class="switch-container">
+            <span class="switch">
+              <input type="checkbox" id="toggleModelOverride" />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+        
+        <div id="modelOverrideGroup" style="display:none; flex-direction:column; gap:12px;">
+          <div class="form-group">
+            <label for="overrideModel">Override Model</label>
+            <select id="overrideModel"></select>
+          </div>
+          
+          <div class="form-group">
+            <label for="overrideTemp">Temperature (0.0 to 1.0)</label>
+            <input type="text" id="overrideTemp" placeholder="0.2" />
+          </div>
+          
+          <div class="form-group">
+            <label for="overrideVariant">Variant</label>
+            <select id="overrideVariant">
+              <option value="">(default)</option>
+              <option value="high">high</option>
+              <option value="max">max</option>
+              <option value="minimal">minimal</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="overrideFallbacks">Fallback Models (comma-separated list)</label>
+            <input type="text" id="overrideFallbacks" placeholder="provider/model1, provider/model2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- AutoSkip Settings -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">
+          Auto-Skip Rule
+          <label class="switch-container">
+            <span class="switch">
+              <input type="checkbox" id="toggleAutoSkip" />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+        
+        <div id="autoSkipGroup" style="display:none; flex-direction:column; gap:12px;">
+          <div class="form-group">
+            <label for="skipSensor">Sensor probe</label>
+            <select id="skipSensor">
+              <option value="git-dirty">git-dirty (1 if working tree has changes)</option>
+              <option value="open-issues">open-issues (count of git repository open issues)</option>
+              <option value="open-prs">open-prs (count of open PRs)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="skipWhen">Skip Condition (When predicate)</label>
+            <input type="text" id="skipWhen" placeholder="==0" />
+            <small style="color:var(--text-muted); font-size:11px; margin-top:2px;">
+              Syntax: operator + value, e.g. <code>==0</code>, <code>&gt;0</code>, <code>!=0</code>.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="drawer-foot">
+      <button class="primary" id="btnApplyStepChanges">Apply Changes</button>
+      <button class="ghost" id="btnDiscardStepChanges">Cancel</button>
+    </div>
+  </div>
 </main>
 
+<!-- Dialog Modal for Delete Confirmation -->
+<dialog id="confirmModal">
+  <div class="modal-head">
+    <span id="iconAlert"></span>
+    <h3 id="confirmTitle">Confirm Action</h3>
+  </div>
+  <div class="modal-body" id="confirmMessage">
+    Are you sure you want to proceed?
+  </div>
+  <div class="modal-foot">
+    <button class="ghost" id="btnCancelConfirm">Abbrechen</button>
+    <button class="primary danger" id="btnAcceptConfirm">Löschen</button>
+  </div>
+</dialog>
+
+<!-- Toast Notifications Container -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
-const GLYPH = { pending:"○", in_progress:"◐", done:"✓", skipped:"–", failed:"✕", blocked:"⦸", needs_review:"!" };
+/* ---------------- Lucide SVG Icon Paths Map ---------------- */
+const SVG_PATHS = {
+  play: '<path d="m6 3 14 9-14 9V3z"/>',
+  pause: '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+  cancel: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+  plus: '<path d="M5 12h14M12 5v14"/>',
+  trash: '<path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  edit: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  chevron: '<path d="m9 18 6-6-6-6"/>',
+  settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  spinner: '<path d="M21 12a9 9 0 1 1-6.21-8.56"/>',
+  close: '<line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/>',
+  arrowRight: '<line x1="5" x2="19" y1="12" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"/>',
+  external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  unlock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>',
+  filter: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+  circle: '<circle cx="12" cy="12" r="10"/>',
+  forward: '<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>',
+  cross: '<line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/>',
+  chevronRight: '<polyline points="9 18 15 12 9 6"/>'
+};
+
+function getIcon(name, className = "") {
+  const path = SVG_PATHS[name] || '';
+  return `<svg class="lucide-icon ${className}" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
+
+/* ---------------- Application State & Globals ---------------- */
 const $ = s => document.querySelector(s);
-let cycle = null, models = null, skills = [], categories = {}, runnable = false, runState = {state:"idle"};
+let cycle = null;
+let models = null;
+let skills = [];
+let categories = {};
+let runnable = false;
+let runState = {state:"idle"};
+let activeLogTab = "all";
+let logData = [];
+let autoScroll = true;
+let editingStep = null; // currently selected step struct for drawer
 
 const api = {
   get: u => fetch(u).then(r => r.json()),
@@ -143,13 +1376,46 @@ const api = {
                        .then(async r => ({ok:r.ok, status:r.status, data: await r.json().catch(()=>({}))})),
 };
 
+/* ---------------- Boot and Listeners ---------------- */
 async function boot() {
-  [cycle, models, skills, categories] = await Promise.all([
-    api.get("/api/cycle"), api.get("/api/models"), api.get("/api/skills"), api.get("/api/categories"),
-  ]);
+  initTheme();
+  injectStaticIcons();
+  
+  console.log("boot: starting fetches");
+  try {
+    [cycle, models, skills, categories] = await Promise.all([
+      api.get("/api/cycle").then(d => { console.log("boot: fetched cycle"); return d; }),
+      api.get("/api/models").then(d => { console.log("boot: fetched models"); return d; }),
+      api.get("/api/skills").then(d => { console.log("boot: fetched skills"); return d; }),
+      api.get("/api/categories").then(d => { console.log("boot: fetched categories"); return d; }),
+    ]);
+    console.log("boot: all fetches completed");
+  } catch (err) {
+    console.error("boot: fetch error:", err);
+    throw err;
+  }
+  
+  populateDrawerPickers();
   await refreshDoctor();
   renderBoard();
   connectSSE();
+  setupEventListeners();
+  console.log("boot: success");
+}
+
+function injectStaticIcons() {
+  $("#btnRunIcon").innerHTML = getIcon("play");
+  $("#btnPauseIcon").innerHTML = getIcon("pause");
+  $("#btnResumeIcon").innerHTML = getIcon("play");
+  $("#btnCancelIcon").innerHTML = getIcon("cancel");
+  $("#btnAddPhaseIcon").innerHTML = getIcon("plus");
+  $("#iconTerminal").innerHTML = getIcon("terminal");
+  $("#iconSearch").innerHTML = getIcon("search");
+  $("#iconCopy").innerHTML = getIcon("copy");
+  $("#iconScroll").innerHTML = getIcon("unlock");
+  $("#iconSettings").innerHTML = getIcon("settings");
+  $("#iconClose").innerHTML = getIcon("cross");
+  $("#iconAlert").innerHTML = getIcon("alert");
 }
 
 async function refreshDoctor() {
@@ -161,179 +1427,751 @@ async function refreshDoctor() {
   syncToolbar();
 }
 
-/* ---------------- rendering ---------------- */
-function catOptions(sel) {
-  const names = Object.keys(categories.categories||{});
-  return names.map(n => `<option value="${n}" ${n===sel?'selected':''}>${n}</option>`).join("");
-}
-function skillOptions(sel) {
-  const opts = [`<option value="">(no skill)</option>`].concat(
-    skills.map(s => `<option value="${s.name}" ${s.name===sel?'selected':''}>${s.name}</option>`));
-  return opts.join("");
+function populateDrawerPickers() {
+  // Skills select
+  const skillSelect = $("#stepSkill");
+  const skillOpts = [`<option value="">(no skill)</option>`].concat(
+    skills.map(s => `<option value="${s.name}" title="${esc(s.description)}">$${s.name}</option>`)
+  );
+  skillSelect.innerHTML = skillOpts.join("");
+
+  // Category select
+  const catSelect = $("#stepCategory");
+  const catNames = Object.keys(categories.categories||{});
+  catSelect.innerHTML = catNames.map(n => `<option value="${n}">▦ ${n}</option>`).join("");
+
+  // Agent select
+  const agentSelect = $("#stepAgent");
+  const agentOpts = [`<option value="">(default agent)</option>`].concat(
+    (models.agents||[]).map(a => `<option value="${a.name}">@${a.name} ${a.role ? '('+a.role+')':''}</option>`)
+  );
+  agentSelect.innerHTML = agentOpts.join("");
+
+  // Override model select
+  const ovModelSelect = $("#overrideModel");
+  const modelList = (models.discovered||[]).map(m => m.id);
+  const registeredList = Object.values(models.registry||{}).map(m => m.id);
+  const allModels = [...new Set([...modelList, ...registeredList])].sort();
+  
+  ovModelSelect.innerHTML = [`<option value="">(select model)</option>`].concat(
+    allModels.map(m => `<option value="${m}">${m}</option>`)
+  ).join("");
 }
 
+function setupEventListeners() {
+  console.log("setupEventListeners: registering events");
+  // Run control triggers
+  $("#btnRun").onclick = runCycle;
+  $("#btnPause").onclick = () => control("pause");
+  $("#btnResume").onclick = () => control("resume");
+  $("#btnCancel").onclick = () => control("cancel");
+  
+  // Theme selectors
+  $("#themeSelector").onchange = e => {
+    console.log("themeSelector changed to:", e.target.value);
+    applyThemeAndMode(e.target.value, $("#modeSelector").value);
+  };
+  $("#modeSelector").onchange = e => {
+    console.log("modeSelector changed to:", e.target.value);
+    applyThemeAndMode($("#themeSelector").value, e.target.value);
+  };
+
+  // Add phase dialog trigger
+  $("#btnAddPhase").onclick = () => {
+    showInputDialog("Phase hinzufügen", "Name der neuen Phase:", "Phase " + ((cycle.phases||[]).length + 1), async (name) => {
+      const r = await api.send("/api/cycle/phase", "POST", {name});
+      if(r.ok){
+        showToast("Phase hinzugefügt", "success");
+        cycle = await api.get("/api/cycle");
+        renderBoard();
+      } else {
+        showToast(r.data.error || "Fehler beim Erstellen der Phase", "error");
+      }
+    });
+  };
+
+  // Drawer events
+  $("#btnCloseDrawer").onclick = closeDrawer;
+  $("#btnDiscardStepChanges").onclick = closeDrawer;
+  $("#btnApplyStepChanges").onclick = applyStepChanges;
+  
+  // Drawer switches toggle details visibility
+  $("#toggleModelOverride").onchange = e => {
+    $("#modelOverrideGroup").style.display = e.target.checked ? "flex" : "none";
+  };
+  $("#toggleAutoSkip").onchange = e => {
+    $("#autoSkipGroup").style.display = e.target.checked ? "flex" : "none";
+  };
+
+  // Activity Feed tabs
+  document.querySelectorAll(".feed-tab").forEach(tab => {
+    tab.onclick = e => {
+      document.querySelectorAll(".feed-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      activeLogTab = tab.dataset.tab;
+      renderLogs();
+    };
+  });
+
+  // Log controls
+  $("#btnClearLogs").onclick = () => {
+    logData = [];
+    renderLogs();
+  };
+  $("#btnCopyLogs").onclick = () => {
+    const text = logData.map(l => `[${l.kind || 'info'}] ${l.line}`).join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("Logs in Zwischenablage kopiert", "success");
+    });
+  };
+  $("#btnScrollLock").onclick = () => {
+    autoScroll = !autoScroll;
+    $("#iconScroll").innerHTML = getIcon(autoScroll ? "unlock" : "lock");
+    showToast(autoScroll ? "Auto-Scroll aktiviert" : "Auto-Scroll gesperrt");
+  };
+  
+  // Log Search
+  $("#logSearch").oninput = renderLogs;
+}
+
+/* ---------------- Theme & Color Scheme Control ---------------- */
+function initTheme() {
+  const savedTheme = localStorage.getItem("symvibe-theme") || "symaira";
+  const savedMode = localStorage.getItem("symvibe-mode") || "system";
+  
+  console.log("initTheme: savedTheme =", savedTheme, "savedMode =", savedMode);
+  applyThemeAndMode(savedTheme, savedMode);
+  
+  $("#themeSelector").value = savedTheme;
+  $("#modeSelector").value = savedMode;
+}
+
+function applyThemeAndMode(theme, mode) {
+  console.log("applyThemeAndMode: theme =", theme, "mode =", mode);
+  const html = document.documentElement;
+  html.setAttribute("data-theme", theme);
+  
+  let resolvedMode = mode;
+  if (mode === "system") {
+    resolvedMode = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  
+  console.log("applyThemeAndMode: resolvedMode =", resolvedMode);
+  html.setAttribute("data-mode", resolvedMode);
+  
+  localStorage.setItem("symvibe-theme", theme);
+  localStorage.setItem("symvibe-mode", mode);
+  showToast(`Farbschema auf ${theme} (${mode}) aktualisiert`);
+}
+
+// Media listener for system theme changes
+window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
+  const savedMode = localStorage.getItem("symvibe-mode") || "system";
+  if (savedMode === "system") {
+    applyThemeAndMode($("#themeSelector").value, "system");
+  }
+});
+
+/* ---------------- Render board ---------------- */
 function renderBoard() {
   const board = $("#board");
   board.innerHTML = "";
   const editable = runState.state === "idle";
+
   (cycle.phases||[]).forEach(ph => {
-    const phase = document.createElement("div");
-    phase.className = "phase";
-    phase.innerHTML = `<div class="phase-head">
+    const col = document.createElement("div");
+    col.className = "phase";
+    col.innerHTML = `
+      <div class="phase-head">
         <span class="pno">${ph.order}</span>
-        <span class="pname">${esc(ph.name)}</span>
-        <span class="spacer" style="flex:1"></span>
-        <button class="tiny ghost" data-add="${ph.id}" ${editable?'':'disabled'}>+ Step</button>
-        <button class="tiny ghost" data-delphase="${ph.id}" ${editable?'':'disabled'}>✕</button>
+        <span class="pname" data-phase-id="${ph.id}" title="Doppelklick zum Umbenennen">${esc(ph.name)}</span>
+        <span class="spacer"></span>
+        <button class="tiny ghost icon-btn" data-add-step="${ph.id}" title="Step hinzufügen" ${editable?'':'disabled'}>
+          ${getIcon("plus")}
+        </button>
+        <button class="tiny ghost icon-btn" data-del-phase="${ph.id}" title="Phase löschen" ${editable?'':'disabled'}>
+          ${getIcon("trash")}
+        </button>
       </div>`;
-    const steps = document.createElement("div");
-    steps.className = "steps"; steps.dataset.phase = ph.id;
-    (ph.steps||[]).forEach(st => steps.appendChild(stepCard(ph, st, editable)));
-    wireDrop(steps, ph.id);
-    phase.appendChild(steps);
-    board.appendChild(phase);
+      
+    // Wire phase title inline renaming
+    const pname = col.querySelector(".pname");
+    pname.ondblclick = () => {
+      if(!editable) return;
+      const input = document.createElement("input");
+      input.className = "pname-input";
+      input.value = ph.name;
+      pname.replaceWith(input);
+      input.focus();
+      
+      const save = async () => {
+        const val = input.value.trim() || ph.name;
+        ph.name = val;
+        pname.textContent = val;
+        input.replaceWith(pname);
+        // Put cycle to backend
+        const r = await api.send("/api/cycle", "PUT", cycle);
+        if(!r.ok) showToast("Fehler beim Umbenennen der Phase", "error");
+      };
+      
+      input.onblur = save;
+      input.onkeydown = e => { if(e.key === "Enter") save(); if(e.key === "Escape") { input.replaceWith(pname); } };
+    };
+
+    const stepsContainer = document.createElement("div");
+    stepsContainer.className = "steps";
+    stepsContainer.dataset.phase = ph.id;
+    
+    (ph.steps||[]).forEach(st => {
+      stepsContainer.appendChild(renderStepCard(ph, st, editable));
+    });
+    
+    wireDragEvents(stepsContainer, ph.id);
+    col.appendChild(stepsContainer);
+    board.appendChild(col);
+  });
+
+  // Wire header action triggers
+  document.querySelectorAll("[data-add-step]").forEach(btn => {
+    btn.onclick = () => {
+      const pid = btn.dataset.addStep;
+      showInputDialog("Step hinzufügen", "Name des neuen Schritts:", "New step", async (name) => {
+        const r = await api.send("/api/cycle/step", "POST", {
+          phase_id: pid,
+          step: {
+            name: name,
+            category: categories.default_category || "unspecified-high",
+            enabled: true
+          }
+        });
+        if(r.ok){
+          showToast("Schritt hinzugefügt", "success");
+          cycle = await api.get("/api/cycle");
+          renderBoard();
+        } else {
+          showToast(r.data.error, "error");
+        }
+      });
+    };
+  });
+
+  document.querySelectorAll("[data-del-phase]").forEach(btn => {
+    btn.onclick = () => {
+      const pid = btn.dataset.delPhase;
+      const phase = cycle.phases.find(p => p.id === pid);
+      showConfirmDialog("Phase löschen", `Möchtest du die Phase "${phase.name}" und all ihre Schritte wirklich löschen?`, async () => {
+        const r = await api.send(`/api/cycle/phase/${pid}`, "DELETE");
+        if(r.ok){
+          showToast("Phase gelöscht", "success");
+          cycle = await api.get("/api/cycle");
+          renderBoard();
+        } else {
+          showToast(r.data.error, "error");
+        }
+      });
+    };
   });
 }
 
-function stepCard(ph, st, editable) {
-  const status = (st.status || "pending");
-  const c = document.createElement("div");
-  c.className = "card " + (st.enabled? "" : "disabled ") + (runState.current_step===st.id && runState.state!=="idle" ? "active":"");
-  c.draggable = editable;
-  c.dataset.step = st.id;
-  const ov = st.model_override ? `<span class="badge ov" title="per-step model override">⮞ ${esc(st.model_override.id||"override")}</span>` : "";
-  c.innerHTML = `
-    <div class="glyph ${status}" data-glyph>${GLYPH[status]||"○"}</div>
-    <div class="meta">
-      <div class="title"><span class="sid">${st.id}</span><span class="name">${esc(st.name)}</span></div>
-      <div class="binds">
-        ${st.skill?`<span class="badge skill">$${esc(st.skill)}</span>`:""}
-        <span class="badge">▦ ${esc(st.category||categories.default_category||"")}</span>
-        ${st.agent?`<span class="badge">@${esc(st.agent)}</span>`:""}
-        ${ov}
-      </div>
-    </div>
-    <div class="actions">
-      ${editable ? `
-        <select data-skill title="bound skill">${skillOptions(st.skill)}</select>
-        <select data-cat title="model category">${catOptions(st.category||categories.default_category)}</select>
-        <label class="hint"><input type="checkbox" data-enabled ${st.enabled?'checked':''}/> on</label>
-        <button class="tiny ghost" data-del title="delete">✕</button>` : ""}
-      <button class="tiny primary" data-run title="run only this step" ${runnable && runState.state==='idle'?'':'disabled'}>▶</button>
-    </div>`;
-  if (editable) {
-    c.querySelector("[data-skill]").onchange = e => patchStep(st.id, s => s.skill = e.target.value);
-    c.querySelector("[data-cat]").onchange   = e => patchStep(st.id, s => s.category = e.target.value);
-    c.querySelector("[data-enabled]").onchange = e => patchStep(st.id, s => s.enabled = e.target.checked);
-    c.querySelector("[data-del]").onclick = () => { if (confirm(`Delete step ${st.id}?`)) mutate(c0 => deleteStepLocal(c0, st.id)); };
-    c.ondragstart = e => { e.dataTransfer.setData("text/plain", st.id); e.dataTransfer.effectAllowed="move"; };
+function renderStepCard(ph, st, editable) {
+  const status = st.status || "pending";
+  const card = document.createElement("div");
+  card.className = `card ${st.enabled ? "" : "disabled"} ${runState.current_step === st.id && runState.state !== "idle" ? "active" : ""}`;
+  card.draggable = editable;
+  card.dataset.step = st.id;
+  
+  // Icon corresponding to status
+  let statusIconName = "circle";
+  if (status === "in_progress") statusIconName = "spinner";
+  else if (status === "done") statusIconName = "check";
+  else if (status === "skipped") statusIconName = "forward";
+  else if (status === "failed") statusIconName = "cross";
+  else if (status === "blocked" || status === "needs_review") statusIconName = "alert";
+  
+  // Binds indicators
+  let binds = "";
+  if(st.skill) binds += `<span class="badge skill" title="Bound Skill">$${esc(st.skill)}</span>`;
+  binds += `<span class="badge cat" title="Model Category">▦ ${esc(st.category || categories.default_category)}</span>`;
+  if(st.agent) binds += `<span class="badge agent" title="Agent Override">@${esc(st.agent)}</span>`;
+  
+  if(st.model_override) {
+    binds += `<span class="badge ov" title="Model Override: ${esc(st.model_override.id)}">⮞ ${esc(st.model_override.id.split("/").pop())}</span>`;
   }
-  c.querySelector("[data-run]").onclick = () => runStep(st.id);
-  return c;
+  
+  if(st.auto_skip) {
+    binds += `<span class="badge skip" title="AutoSkip Rule: skip when ${esc(st.auto_skip.sensor)} ${esc(st.auto_skip.when)}">⏭ ${esc(st.auto_skip.sensor)}</span>`;
+  }
+  
+  if(st.prompt_suffix && st.prompt_suffix.trim()) {
+    binds += `<span class="badge prompt" title="Custom prompt instructions included">✍ prompt</span>`;
+  }
+
+  card.innerHTML = `
+    <div class="card-icon ${status}">${getIcon(statusIconName, status)}</div>
+    <div class="card-meta">
+      <div class="card-title">
+        <span class="card-sid">${st.id}</span>
+        <span class="card-name" title="${esc(st.name)}">${esc(st.name)}</span>
+      </div>
+      <div class="card-binds">${binds}</div>
+    </div>
+    <div class="card-actions">
+      <button class="run-btn" data-run-step="${st.id}" title="Nur diesen Schritt ausführen" ${runnable && runState.state === 'idle' ? '' : 'disabled'}>
+        ${getIcon("play")}
+      </button>
+      ${editable ? `
+        <button class="edit-btn" data-edit-step="${st.id}" title="Details konfigurieren">${getIcon("settings")}</button>
+        <button class="copy-btn" data-clone-step="${st.id}" title="Duplizieren">${getIcon("copy")}</button>
+        <button class="del-btn" data-del-step="${st.id}" title="Schritt löschen">${getIcon("trash")}</button>
+      ` : ""}
+    </div>`;
+
+  // Bind Card Button Listeners
+  card.querySelector("[data-run-step]").onclick = (e) => { e.stopPropagation(); runStep(st.id); };
+  if(editable) {
+    card.querySelector("[data-edit-step]").onclick = (e) => { e.stopPropagation(); openDrawer(st); };
+    card.querySelector("[data-clone-step]").onclick = (e) => { e.stopPropagation(); cloneStep(st.id); };
+    card.querySelector("[data-del-step]").onclick = (e) => { e.stopPropagation(); deleteStep(st.id); };
+    
+    // Clicking card opens drawer as well
+    card.onclick = () => openDrawer(st);
+    
+    // Drag Events
+    card.ondragstart = e => {
+      e.dataTransfer.setData("text/plain", st.id);
+      e.dataTransfer.effectAllowed = "move";
+      card.style.opacity = "0.4";
+    };
+    card.ondragend = () => { card.style.opacity = ""; };
+  }
+
+  return card;
 }
 
-function wireDrop(lane, phaseId) {
-  lane.ondragover = e => { e.preventDefault(); lane.classList.add("dragover"); };
+/* ---------------- Drag & Drop logic ---------------- */
+function wireDragEvents(lane, phaseId) {
+  lane.ondragover = e => {
+    e.preventDefault();
+    lane.classList.add("dragover");
+  };
   lane.ondragleave = () => lane.classList.remove("dragover");
   lane.ondrop = e => {
-    e.preventDefault(); lane.classList.remove("dragover");
-    const id = e.dataTransfer.getData("text/plain"); if (!id) return;
-    const after = [...lane.querySelectorAll(".card")].find(card => e.clientY < card.getBoundingClientRect().top + card.offsetHeight/2);
-    const toIndex = after ? [...lane.children].indexOf(after) : (lane.querySelectorAll(".card").length);
-    mutate(c0 => moveStepLocal(c0, id, phaseId, toIndex));
+    e.preventDefault();
+    lane.classList.remove("dragover");
+    const id = e.dataTransfer.getData("text/plain");
+    if (!id) return;
+    
+    const after = [...lane.querySelectorAll(".card")].find(card => {
+      return e.clientY < card.getBoundingClientRect().top + card.offsetHeight/2;
+    });
+    
+    const toIndex = after ? [...lane.children].indexOf(after) : lane.querySelectorAll(".card").length;
+    mutateCycleLocal(c0 => moveStepLocal(c0, id, phaseId, toIndex));
   };
 }
 
-/* ---------------- local model edits -> PUT whole cycle ---------------- */
-function patchStep(id, fn) { mutate(c0 => { const s = findStep(c0, id); if (s) fn(s); }); }
-function findStep(c0, id){ for(const p of c0.phases) for(const s of p.steps) if(s.id===id) return s; return null; }
-function deleteStepLocal(c0, id){ for(const p of c0.phases){ const i=p.steps.findIndex(s=>s.id===id); if(i>=0){p.steps.splice(i,1); return;} } }
-function moveStepLocal(c0, id, toPhase, toIndex){
-  let moved=null;
-  for(const p of c0.phases){ const i=p.steps.findIndex(s=>s.id===id); if(i>=0){ moved=p.steps.splice(i,1)[0]; break; } }
+function moveStepLocal(c0, id, toPhase, toIndex) {
+  let moved = null;
+  for(const p of c0.phases){
+    const i = p.steps.findIndex(s => s.id === id);
+    if(i >= 0){
+      moved = p.steps.splice(i, 1)[0];
+      break;
+    }
+  }
   if(!moved) return;
-  const dst = c0.phases.find(p=>p.id===toPhase); if(!dst) return;
-  dst.steps.splice(Math.max(0,Math.min(toIndex,dst.steps.length)), 0, moved);
+  const dst = c0.phases.find(p => p.id === toPhase);
+  if(!dst) return;
+  dst.steps.splice(Math.max(0, Math.min(toIndex, dst.steps.length)), 0, moved);
 }
-async function mutate(fn) {
+
+async function mutateCycleLocal(fn) {
   const draft = JSON.parse(JSON.stringify(cycle));
   fn(draft);
   const r = await api.send("/api/cycle", "PUT", draft);
-  if (!r.ok) { toast("edit rejected: " + (r.data.error||r.status)); return; }
-  cycle = r.data; renderBoard();
+  if (!r.ok) {
+    showToast("Änderungen vom Server abgelehnt: " + (r.data.error || r.status), "error");
+    return;
+  }
+  cycle = r.data;
+  renderBoard();
 }
 
-/* ---------------- run control ---------------- */
-async function runStep(id){ const r = await api.send("/api/run/step","POST",{step_id:id}); if(!r.ok) toast(r.data.error||("HTTP "+r.status)); }
-async function runCycle(){ const r = await api.send("/api/run","POST"); if(!r.ok) toast(r.data.error||("HTTP "+r.status)); }
-async function control(action){ const r = await api.send("/api/run/control","POST",{action}); if(!r.ok && r.status!==202) toast(r.data.error||("HTTP "+r.status)); }
+/* ---------------- Step Mutation Actions ---------------- */
+async function cloneStep(id) {
+  const r = await api.send(`/api/cycle/step/${id}/duplicate`, "POST");
+  if(r.ok){
+    showToast("Schritt dupliziert", "success");
+    cycle = await api.get("/api/cycle");
+    renderBoard();
+  } else {
+    showToast(r.data.error, "error");
+  }
+}
 
-$("#btnRun").onclick = runCycle;
-$("#btnPause").onclick = () => control("pause");
-$("#btnResume").onclick = () => control("resume");
-$("#btnCancel").onclick = () => control("cancel");
-$("#btnAddPhase").onclick = async () => {
-  const name = prompt("Phase name:", "New Phase"); if(name==null) return;
-  const r = await api.send("/api/cycle/phase","POST",{name}); if(r.ok){ cycle = await api.get("/api/cycle"); renderBoard(); }
-};
-document.addEventListener("click", async e => {
-  const add = e.target.closest("[data-add]"); const del = e.target.closest("[data-delphase]");
-  if (add) { const name = prompt("Step name:", "New step"); if(name==null) return;
-    const skill = prompt("Bound skill (blank = none):","") || "";
-    const r = await api.send("/api/cycle/step","POST",{phase_id:add.dataset.add, step:{name, skill, category:categories.default_category, enabled:true}});
-    if(r.ok){ cycle = await api.get("/api/cycle"); renderBoard(); } else toast(r.data.error); }
-  if (del) { if(confirm("Delete phase and its steps?")){ const r = await api.send("/api/cycle/phase/"+del.dataset.delphase,"DELETE");
-    if(r.ok){ cycle = await api.get("/api/cycle"); renderBoard(); } else toast(r.data.error); } }
-});
+function deleteStep(id) {
+  showConfirmDialog("Schritt löschen", `Möchtest du den Schritt ${id} wirklich löschen?`, async () => {
+    const r = await api.send(`/api/cycle/step/${id}`, "DELETE");
+    if(r.ok){
+      showToast("Schritt gelöscht", "success");
+      cycle = await api.get("/api/cycle");
+      renderBoard();
+    } else {
+      showToast(r.data.error, "error");
+    }
+  });
+}
+
+/* ---------------- Run Controls & API Triggers ---------------- */
+async function runStep(id){
+  showToast(`Starte Einzelschritt ${id}...`);
+  const r = await api.send("/api/run/step","POST",{step_id:id});
+  if(!r.ok) showToast(r.data.error||("HTTP "+r.status), "error");
+}
+
+async function runCycle(){
+  showToast("Starte autonomen Cycle...");
+  const r = await api.send("/api/run","POST");
+  if(!r.ok) showToast(r.data.error||("HTTP "+r.status), "error");
+}
+
+async function control(action){
+  showToast(`Cycle-Aktion: ${action}...`);
+  const r = await api.send("/api/run/control","POST",{action});
+  if(!r.ok && r.status!==202) showToast(r.data.error||("HTTP "+r.status), "error");
+}
 
 function syncToolbar(){
   const s = runState.state;
-  $("#btnRun").disabled = !runnable || s!=="idle";
-  $("#btnPause").disabled = s!=="running";
-  $("#btnResume").disabled = !(s==="paused");
-  $("#btnCancel").disabled = (s==="idle");
-  const dot = $("#runDot"); dot.className = "dot " + (s==="idle"?"":s);
-  $("#runLabel").textContent = s + (runState.current_step?(" · "+runState.current_step):"");
+  $("#btnRun").disabled = !runnable || s !== "idle";
+  $("#btnPause").disabled = s !== "running";
+  $("#btnResume").disabled = s !== "paused";
+  $("#btnCancel").disabled = s === "idle";
+  
+  const dot = $("#runDot");
+  dot.className = "status-dot " + s;
+  $("#runLabel").textContent = s.charAt(0).toUpperCase() + s.slice(1) + (runState.current_step ? (` · ${runState.current_step}`) : "");
 }
 
-/* ---------------- live SSE ---------------- */
+/* ---------------- Step Edit Drawer Logic ---------------- */
+function openDrawer(step) {
+  editingStep = step;
+  $("#editStepId").textContent = step.id;
+  $("#stepName").value = step.name || "";
+  $("#stepEnabled").checked = step.enabled !== false;
+  $("#stepSkill").value = step.skill || "";
+  $("#stepCategory").value = step.category || categories.default_category || "";
+  $("#stepAgent").value = step.agent || "";
+  $("#stepPromptSuffix").value = step.prompt_suffix || "";
+  
+  // Model Override details
+  const hasOverride = !!step.model_override;
+  $("#toggleModelOverride").checked = hasOverride;
+  $("#modelOverrideGroup").style.display = hasOverride ? "flex" : "none";
+  if (hasOverride) {
+    $("#overrideModel").value = step.model_override.id || "";
+    $("#overrideTemp").value = step.model_override.temperature !== undefined ? step.model_override.temperature : "";
+    $("#overrideVariant").value = step.model_override.variant || "";
+    $("#overrideFallbacks").value = (step.model_override.fallback_models || []).join(", ");
+  } else {
+    $("#overrideModel").value = "";
+    $("#overrideTemp").value = "";
+    $("#overrideVariant").value = "";
+    $("#overrideFallbacks").value = "";
+  }
+  
+  // AutoSkip details
+  const hasSkip = !!step.auto_skip;
+  $("#toggleAutoSkip").checked = hasSkip;
+  $("#autoSkipGroup").style.display = hasSkip ? "flex" : "none";
+  if (hasSkip) {
+    $("#skipSensor").value = step.auto_skip.sensor || "git-dirty";
+    $("#skipWhen").value = step.auto_skip.when || "==0";
+  } else {
+    $("#skipSensor").value = "git-dirty";
+    $("#skipWhen").value = "==0";
+  }
+
+  $("#editDrawer").classList.add("open");
+}
+
+function closeDrawer() {
+  editingStep = null;
+  $("#editDrawer").classList.remove("open");
+}
+
+async function applyStepChanges() {
+  if (!editingStep) return;
+  
+  const stepId = editingStep.id;
+  const name = $("#stepName").value.trim();
+  if(!name) {
+    showToast("Schrittname darf nicht leer sein", "error");
+    return;
+  }
+  
+  // Find step in local cycle and apply updates
+  let targetStep = null;
+  for (const p of cycle.phases) {
+    for (const s of p.steps) {
+      if(s.id === stepId) {
+        targetStep = s;
+        break;
+      }
+    }
+  }
+  
+  if(!targetStep) return;
+
+  targetStep.name = name;
+  targetStep.enabled = $("#stepEnabled").checked;
+  targetStep.skill = $("#stepSkill").value;
+  targetStep.category = $("#stepCategory").value;
+  targetStep.agent = $("#stepAgent").value;
+  targetStep.prompt_suffix = $("#stepPromptSuffix").value;
+  
+  // Model Override
+  if($("#toggleModelOverride").checked) {
+    const mid = $("#overrideModel").value;
+    if(!mid) {
+      showToast("Model Override erfordert die Auswahl eines Modells", "error");
+      return;
+    }
+    const tempRaw = $("#overrideTemp").value.trim();
+    const temp = tempRaw !== "" ? parseFloat(tempRaw) : 0.2;
+    if(isNaN(temp) || temp < 0 || temp > 2) {
+      showToast("Ungültige Temperatur (Muss Zahl zwischen 0.0 und 2.0 sein)", "error");
+      return;
+    }
+    const fallbackStr = $("#overrideFallbacks").value.trim();
+    const fallbacks = fallbackStr ? fallbackStr.split(",").map(f => f.trim()).filter(Boolean) : [];
+    
+    targetStep.model_override = {
+      id: mid,
+      temperature: temp,
+      variant: $("#overrideVariant").value,
+      fallback_models: fallbacks
+    };
+  } else {
+    targetStep.model_override = null;
+  }
+  
+  // AutoSkip
+  if($("#toggleAutoSkip").checked) {
+    const sensor = $("#skipSensor").value;
+    const when = $("#skipWhen").value.trim();
+    if(!when) {
+      showToast("Auto-Skip Regel erfordert Bedingung (z.B. ==0)", "error");
+      return;
+    }
+    targetStep.auto_skip = { sensor, when };
+  } else {
+    targetStep.auto_skip = null;
+  }
+
+  // Save back to server
+  const r = await api.send("/api/cycle", "PUT", cycle);
+  if(r.ok) {
+    showToast("Schritt-Konfiguration aktualisiert", "success");
+    cycle = r.data;
+    renderBoard();
+    closeDrawer();
+  } else {
+    showToast(r.data.error || "Fehler beim Speichern der Konfiguration", "error");
+  }
+}
+
+/* ---------------- EventSource (SSE) Integration ---------------- */
 function connectSSE(){
   const es = new EventSource("/events");
   es.addEventListener("run_state", e => {
-    const d = JSON.parse(e.data); runState = {state:d.state, run_id:d.run_id, current_step:d.step_id};
-    syncToolbar(); renderBoard();
+    const d = JSON.parse(e.data);
+    runState = {state:d.state, run_id:d.run_id, current_step:d.step_id};
+    syncToolbar();
+    renderBoard();
   });
+  
   es.addEventListener("step_status", e => {
-    const d = JSON.parse(e.data); applyStatus(d.step_id, d.status);
+    const d = JSON.parse(e.data);
+    applyStatus(d.step_id, d.status);
   });
-  es.addEventListener("log", e => { const d = JSON.parse(e.data); appendLog(d); });
-  es.addEventListener("board", async () => { cycle = await api.get("/api/cycle"); renderBoard(); });
-  es.addEventListener("error", e => { try{ const d=JSON.parse(e.data); appendLog({kind:"error", line:d.line}); }catch(_){} });
-  es.onerror = () => { /* browser auto-reconnects */ };
-}
-function applyStatus(stepId, status){
-  const s = findStep(cycle, stepId); if (s) s.status = status;
-  const card = document.querySelector(`.card[data-step="${cssEsc(stepId)}"]`);
-  if (card){ const g = card.querySelector("[data-glyph]"); if(g){ g.textContent = GLYPH[status]||"○"; g.className = "glyph "+status; } }
-}
-let curFeedStep = "";
-function appendLog(d){
-  if (d.step_id && d.step_id!==curFeedStep){ curFeedStep = d.step_id; $("#feedStep").textContent = "· "+d.step_id; }
-  const log = $("#log");
-  const ln = document.createElement("div");
-  ln.className = "ln " + (d.kind||"log");
-  ln.innerHTML = `<span class="k">${esc(d.kind||"")}</span>${esc(d.line||"")}`;
-  log.appendChild(ln);
-  while (log.childElementCount > 400) log.removeChild(log.firstChild);
-  log.scrollTop = log.scrollHeight;
+  
+  es.addEventListener("log", e => {
+    const d = JSON.parse(e.data);
+    appendLog(d);
+  });
+  
+  es.addEventListener("board", async () => {
+    cycle = await api.get("/api/cycle");
+    renderBoard();
+  });
+  
+  es.addEventListener("error", e => {
+    try {
+      const d = JSON.parse(e.data);
+      appendLog({kind:"error", line:d.line});
+    } catch(_) {}
+  });
 }
 
-/* ---------------- utils ---------------- */
+function applyStatus(stepId, status){
+  // Update local cycle model
+  for(const p of cycle.phases) {
+    for(const s of p.steps) {
+      if(s.id === stepId) {
+        s.status = status;
+        break;
+      }
+    }
+  }
+  
+  // Dom update for corresponding card
+  const card = document.querySelector(`.card[data-step="${cssEsc(stepId)}"]`);
+  if (card) {
+    const iconContainer = card.querySelector(".card-icon");
+    if(iconContainer) {
+      let statusIconName = "circle";
+      if (status === "in_progress") statusIconName = "spinner";
+      else if (status === "done") statusIconName = "check";
+      else if (status === "skipped") statusIconName = "forward";
+      else if (status === "failed") statusIconName = "cross";
+      else if (status === "blocked" || status === "needs_review") statusIconName = "alert";
+      
+      iconContainer.innerHTML = getIcon(statusIconName, status);
+      iconContainer.className = `card-icon ${status}`;
+    }
+  }
+}
+
+let curFeedStep = "";
+function appendLog(d) {
+  if (d.step_id && d.step_id !== curFeedStep){
+    curFeedStep = d.step_id;
+    $("#feedStep").textContent = "· " + d.step_id;
+  }
+  
+  logData.push(d);
+  if (logData.length > 500) logData.shift();
+  
+  // Render immediately if it fits active filters
+  const passesTab = activeLogTab === "all" || (activeLogTab === d.kind);
+  const searchVal = $("#logSearch").value.toLowerCase();
+  const passesSearch = !searchVal || (d.line && d.line.toLowerCase().includes(searchVal));
+  
+  if (passesTab && passesSearch) {
+    const logConsole = $("#log");
+    const ln = document.createElement("div");
+    ln.className = `ln ${d.kind || "log"}`;
+    ln.innerHTML = `<span class="k">${esc(d.kind || "log")}</span>${esc(d.line || "")}`;
+    logConsole.appendChild(ln);
+    
+    // Auto Scroll
+    if (autoScroll) {
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+  }
+}
+
+function renderLogs() {
+  const logConsole = $("#log");
+  logConsole.innerHTML = "";
+  const searchVal = $("#logSearch").value.toLowerCase();
+  
+  logData.forEach(d => {
+    const passesTab = activeLogTab === "all" || (activeLogTab === d.kind);
+    const passesSearch = !searchVal || (d.line && d.line.toLowerCase().includes(searchVal));
+    
+    if (passesTab && passesSearch) {
+      const ln = document.createElement("div");
+      ln.className = `ln ${d.kind || "log"}`;
+      ln.innerHTML = `<span class="k">${esc(d.kind || "log")}</span>${esc(d.line || "")}`;
+      logConsole.appendChild(ln);
+    }
+  });
+  
+  if (autoScroll) {
+    logConsole.scrollTop = logConsole.scrollHeight;
+  }
+}
+
+/* ---------------- Helper Dialog Modals ---------------- */
+let activeConfirmCallback = null;
+
+function showConfirmDialog(title, message, onConfirm) {
+  $("#confirmTitle").textContent = title;
+  $("#confirmMessage").textContent = message;
+  activeConfirmCallback = onConfirm;
+  
+  const dialog = $("#confirmModal");
+  dialog.showModal();
+}
+
+$("#btnAcceptConfirm").onclick = () => {
+  if (activeConfirmCallback) {
+    activeConfirmCallback();
+    activeConfirmCallback = null;
+  }
+  $("#confirmModal").close();
+};
+
+$("#btnCancelConfirm").onclick = () => {
+  activeConfirmCallback = null;
+  $("#confirmModal").close();
+};
+
+// Fallback for click outside dialog (light dismissal)
+if (!('closedBy' in HTMLDialogElement.prototype)) {
+  const confirmDialog = $("#confirmModal");
+  confirmDialog.addEventListener('click', (event) => {
+    if (event.target !== confirmDialog) return;
+    const rect = confirmDialog.getBoundingClientRect();
+    const inside = (
+      rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX && event.clientX <= rect.left + rect.width
+    );
+    if (!inside) confirmDialog.close();
+  });
+}
+
+function showInputDialog(title, promptLabel, defaultVal, onSubmit) {
+  // Simple prompt wrapper, can be replaced by beautiful modal if preferred.
+  // We use prompt here for quick input, but styled nicely.
+  const name = prompt(promptLabel, defaultVal);
+  if (name !== null) {
+    const val = name.trim();
+    if(val) onSubmit(val);
+  }
+}
+
+/* ---------------- Toast Notifications ---------------- */
+function showToast(message, type = "info") {
+  const container = $("#toastContainer");
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  
+  let icon = "info";
+  if (type === "success") icon = "check";
+  else if (type === "error") icon = "alert";
+  
+  toast.innerHTML = `${getIcon(icon)} <span>${esc(message)}</span>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+    toast.style.transition = "all 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+/* ---------------- Utilities ---------------- */
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function cssEsc(s){ return String(s).replace(/["\\]/g,"\\$&"); }
-function toast(msg){ appendLog({kind:"error", line: msg}); }
 
-boot().catch(e => { document.body.innerHTML = `<pre style="padding:20px;color:#e0726b">Failed to load symvibe board:\n${esc(e&&e.message||e)}</pre>`; });
+boot().catch(e => {
+  console.error("boot failed:", e);
+  document.body.innerHTML = `<pre style="padding:24px; color:#ef4444; background:#0b0f17; height:100vh;">Failed to load symvibe board:\n${esc(e && e.message || e)}</pre>`;
+});
 </script>
 </body>
 </html>

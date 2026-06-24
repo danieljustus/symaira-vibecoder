@@ -14,9 +14,6 @@ func TestStepStatusEffective(t *testing.T) {
 	if StepStatus("").Effective() != StatusPending {
 		t.Fatal("empty status must normalize to pending")
 	}
-	if !StepStatus("").IsTerminal() && StatusDone.IsTerminal() {
-		// sanity: pending not terminal, done terminal
-	}
 	if StatusFailed.IsTerminal() {
 		t.Fatal("failed must NOT be terminal (it halts, not passes)")
 	}

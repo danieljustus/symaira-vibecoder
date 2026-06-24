@@ -11,11 +11,6 @@ import (
 // ---------------------------------------------------------------------------
 // Baukasten ("cycle") schema — stored per-cycle under the DATA dir so GUI edits
 // survive: ~/.local/share/symvibe/cycles/<id>.toml
-// ---------------------------------------------------------------------------
-
-// Cycle is one editable Baukasten: an ordered set of phases, each with steps.
-// The struct carries both toml (on-disk) and json (on-the-wire) tags using the
-// SAME snake_case names so disk and GUI share one mental model.
 type Cycle struct {
 	SchemaVersion int     `toml:"schema_version" json:"schema_version"`
 	ID            string  `toml:"id" json:"id"`
