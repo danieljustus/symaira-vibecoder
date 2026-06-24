@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSCameraUsageDescription</key>
+    <string>symvibe uses the camera to scan QR codes for pairing with your Mac.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>symvibe needs local network access to connect to your Mac running symvibe serve.</string>
+</dict>
+</plist>

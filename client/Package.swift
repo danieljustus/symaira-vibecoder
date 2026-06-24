@@ -12,5 +12,9 @@ let package = Package(
     ],
     targets: [
         .target(name: "SymvibeKit"),
+        .testTarget(
+            name: "SymvibeKitTests",
+            dependencies: ["SymvibeKit"]
+        ),
     ]
 )
