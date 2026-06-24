@@ -41,12 +41,16 @@ func (r *OpenCodeRunner) Available(ctx context.Context) (bool, Info) {
 	if r.bin == "" {
 		return false, Info{Name: "opencode", Detail: "not found on PATH or ~/.opencode/bin"}
 	}
-	out, err := exec.CommandContext(ctx, r.bin, "--version").Output()
-	ver := strings.TrimSpace(string(out))
-	if err != nil {
+	ver, ok := OpencodeVersion(r.bin)
+	if !ok {
 		return false, Info{Name: "opencode", Path: r.bin, Detail: "could not run --version"}
 	}
-	return true, Info{Name: "opencode", Version: ver, Path: r.bin}
+	versionOK, detail := CheckOpencodeVersion(ver)
+	info := Info{Name: "opencode", Version: ver, Path: r.bin, Detail: detail}
+	if !versionOK {
+		return false, info
+	}
+	return true, info
 }
 
 // buildArgs assembles the `opencode run` invocation. The composed Message is the

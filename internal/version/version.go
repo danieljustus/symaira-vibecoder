@@ -3,6 +3,11 @@ package version
 
 import "runtime"
 
+// APIVersion is the version of the REST + SSE API contract that the server
+// exposes. It is incremented when the API surface changes in a way that
+// clients need to know about (new endpoints, changed JSON shapes, etc.).
+const APIVersion = "v1"
+
 // Version is overridden at build time via
 //
 //	-ldflags "-X github.com/danieljustus/symaira-vibecoder/internal/version.Version=v1.2.3"

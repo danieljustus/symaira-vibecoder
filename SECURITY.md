@@ -7,9 +7,11 @@ symvibe runs **locally** and is a single-user developer tool.
 - **Loopback only (default).** The board/API binds to `127.0.0.1` by default
   (`[server] host`). It is not authenticated — do not bind it to a public
   interface. Nothing in symvibe exposes opencode itself to the network.
-- **The board can run code.** Pressing *Run* makes opencode execute an AI coding
-  agent against your working tree (git operations, file edits, `gh` calls, …).
-  Treat the board like a terminal: only run it on repositories you trust.
+- **The board can run code.** Pressing *Run* makes the backend execute an AI coding
+  agent against your working tree (git operations, file edits, optionally `gh`
+  calls for GitHub workflows, …). Treat the board like a terminal: only run it
+  on repositories you trust. `gh` is optional; without it, GitHub-specific steps
+  fail gracefully.
 
 ## Network access modes
 

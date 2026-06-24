@@ -37,10 +37,11 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host        string `toml:"host"`
-	Port        int    `toml:"port"`
-	OpenBrowser bool   `toml:"open_browser"`
-	Access      string `toml:"access"` // loopback | lan | relay
+	Host         string `toml:"host"`
+	Port         int    `toml:"port"`
+	OpenBrowser  bool   `toml:"open_browser"`
+	Access       string `toml:"access"`        // loopback | lan | relay
+	MulticastDNS bool   `toml:"multicast_dns"` // advertise _symvibe._tcp in lan mode
 }
 
 type AuthConfig struct {
@@ -50,6 +51,7 @@ type AuthConfig struct {
 type RunnerConfig struct {
 	Backend     string `toml:"backend"`      // opencode | claudecode | api
 	OpencodeBin string `toml:"opencode_bin"` // empty -> auto-detect on PATH
+	APIKey      string `toml:"api_key"`      // Anthropic API key for backend="api"
 	WorkingDir  string `toml:"working_dir"`
 	Mode        string `toml:"mode"`       // serve | run (MVP default: run)
 	ServePort   int    `toml:"serve_port"` // 0 -> free port
@@ -168,6 +170,9 @@ func applyEnv(c *Config) {
 	}
 	if v := os.Getenv("SYMVIBE_OPENCODE_BIN"); v != "" {
 		c.Runner.OpencodeBin = v
+	}
+	if v := os.Getenv("SYMVIBE_ANTHROPIC_API_KEY"); v != "" {
+		c.Runner.APIKey = v
 	}
 	if v := os.Getenv("SYMVIBE_WORKING_DIR"); v != "" {
 		c.Runner.WorkingDir = v
