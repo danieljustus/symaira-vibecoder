@@ -4,11 +4,12 @@ import SymvibeKit
 struct ContentView: View {
     @State private var connectionStore = ConnectionStore()
     @State private var boardStore: BoardStore?
+    @State private var activityStore = ActivityStore()
 
     var body: some View {
         Group {
             if let boardStore {
-                MainTabView(store: boardStore, connectionStore: connectionStore)
+                MainTabView(store: boardStore, activityStore: activityStore, connectionStore: connectionStore)
             } else {
                 OnboardingView(store: connectionStore)
             }
@@ -16,11 +17,13 @@ struct ContentView: View {
         .task(id: connectionStore.activeProfileID) {
             if connectionStore.activeProfileID != nil {
                 let store = BoardStore(connectionStore: connectionStore)
+                store.activityStore = activityStore
                 boardStore = store
                 await store.connect()
             } else {
                 boardStore?.disconnect()
                 boardStore = nil
+                activityStore.clear()
             }
         }
     }
@@ -30,12 +33,13 @@ struct ContentView: View {
 
 struct MainTabView: View {
     let store: BoardStore
+    let activityStore: ActivityStore
     let connectionStore: ConnectionStore
 
     var body: some View {
         TabView {
             NavigationStack {
-                BoardView(store: store)
+                BoardView(store: store, activityStore: activityStore)
             }
             .tabItem {
                 Label("Board", systemImage: "rectangle.stack")

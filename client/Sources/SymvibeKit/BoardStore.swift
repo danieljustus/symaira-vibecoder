@@ -13,6 +13,7 @@ public final class BoardStore {
     @ObservationIgnored private var apiClient: APIClient?
     @ObservationIgnored private var sseClient: SSEClient?
     @ObservationIgnored private var sseTask: Task<Void, Never>?
+    @ObservationIgnored public var activityStore: ActivityStore?
 
     public var client: APIClient? { apiClient }
 
@@ -138,6 +139,9 @@ public final class BoardStore {
                     cycle: nil,
                     mode: nil
                 )
+                if state == "idle" {
+                    activityStore?.clear()
+                }
             }
         case "step_status":
             if let stepID = event.stepID,
@@ -145,6 +149,8 @@ public final class BoardStore {
                let newStatus = StepStatus(rawValue: statusStr) {
                 updateStepStatus(stepID: stepID, status: newStatus)
             }
+        case "log", "error":
+            activityStore?.append(event: event)
         default:
             break
         }
@@ -161,5 +167,111 @@ public final class BoardStore {
                 }
             }
         }
+    }
+
+    // MARK: - Run Control
+
+    public var isRunning: Bool {
+        runState?.state == "running"
+    }
+
+    public var isPaused: Bool {
+        runState?.state == "paused"
+    }
+
+    public func runCycle() async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await apiClient.runCycle()
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    public func runStep(_ stepID: String) async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await apiClient.runStep(stepID)
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    public func pauseRun() async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await apiClient.controlRun(action: "pause")
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    public func resumeRun() async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await apiClient.controlRun(action: "resume")
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    public func cancelRun() async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await apiClient.controlRun(action: "cancel")
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    // MARK: - Step Editing
+
+    /// Save the entire cycle (PUT /api/cycle). Returns nil on success or a user-facing error string.
+    public func saveCycle(_ updatedCycle: Cycle) async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            cycle = try await apiClient.updateCycle(updatedCycle)
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
+    }
+
+    /// Returns a mutable copy of the cycle for editing.
+    public func editableCycle() -> Cycle? {
+        cycle
+    }
+
+    // MARK: - Doctor
+
+    public func fetchDoctor() async -> DoctorResponse? {
+        guard let apiClient else { return nil }
+        return try? await apiClient.doctor()
+    }
+
+    // MARK: - Helpers
+
+    private func friendlyError(_ error: Error) -> String {
+        if let symvibeError = error as? SymvibeError {
+            switch symvibeError {
+            case .http(let status, _):
+                switch status {
+                case 409:
+                    return "Edits are locked while a run is active."
+                case 503:
+                    return "Run is not available (check doctor status)."
+                default:
+                    return symvibeError.errorDescription ?? "Unknown error"
+                }
+            default:
+                return symvibeError.errorDescription ?? "Unknown error"
+            }
+        }
+        return error.localizedDescription
     }
 }
