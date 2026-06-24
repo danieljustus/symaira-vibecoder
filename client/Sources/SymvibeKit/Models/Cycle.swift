@@ -23,6 +23,19 @@ public enum StepStatus: String, Codable, Sendable, CaseIterable {
             false
         }
     }
+
+    /// Status glyph for display (matches README mapping: ○ ◐ ✓ – ✕ ⦸ !).
+    public var glyph: String {
+        switch self {
+        case .pending: "○"
+        case .inProgress: "◐"
+        case .done: "✓"
+        case .skipped: "–"
+        case .failed: "✕"
+        case .blocked: "⦸"
+        case .needsReview: "!"
+        }
+    }
 }
 
 public struct AutoSkip: Codable, Sendable, Equatable {

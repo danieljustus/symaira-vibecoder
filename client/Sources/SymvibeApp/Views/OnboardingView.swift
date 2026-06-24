@@ -4,13 +4,15 @@ import SwiftUI
 
 /// Onboarding screen — scan QR (iOS) or enter code manually (macOS/simulator).
 public struct OnboardingView: View {
-    @State private var store = ConnectionStore()
+    var store: ConnectionStore
     @State private var showQRScanner = false
     @State private var showManualEntry = false
     @State private var errorMessage: String?
     @State private var isPairing = false
 
-    public init() {}
+    public init(store: ConnectionStore = ConnectionStore()) {
+        self.store = store
+    }
 
     public var body: some View {
         NavigationStack {

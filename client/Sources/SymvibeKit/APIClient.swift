@@ -45,6 +45,10 @@ public actor APIClient {
         try await get(path: "/api/categories")
     }
 
+    public func runState() async throws -> RunState {
+        try await get(path: "/api/runstate")
+    }
+
     // MARK: - Cycle
 
     public func cycle() async throws -> Cycle {
