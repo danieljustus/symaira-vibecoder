@@ -30,7 +30,7 @@ func main() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.AddCommand(serveCmd(), doctorCmd(), versionCmd())
+	root.AddCommand(serveCmd(), doctorCmd(), versionCmd(), pairCmd())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)

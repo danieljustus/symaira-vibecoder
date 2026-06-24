@@ -16,6 +16,12 @@ schema_version = 1
 host = "127.0.0.1"          # ENV: SYMVIBE_HOST
 port = 4317                  # ENV: SYMVIBE_PORT
 open_browser = true          # auto-open the GUI on start; ENV: SYMVIBE_OPEN_BROWSER
+access = "loopback"          # loopback | lan | relay ; ENV: SYMVIBE_ACCESS
+
+# ----------------------------------------------------------------------------
+[auth]
+# Bearer-token authentication. Required for lan/relay access modes.
+enabled = false
 
 # ----------------------------------------------------------------------------
 [runner]

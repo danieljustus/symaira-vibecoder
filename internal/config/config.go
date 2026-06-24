@@ -29,6 +29,7 @@ import (
 type Config struct {
 	SchemaVersion int                        `toml:"schema_version"`
 	Server        ServerConfig               `toml:"server"`
+	Auth          AuthConfig                 `toml:"auth"`
 	Runner        RunnerConfig               `toml:"runner"`
 	Models        map[string]Model           `toml:"models"`     // registry: name -> model
 	Categories    map[string]CategoryBinding `toml:"categories"` // category -> binding
@@ -39,6 +40,11 @@ type ServerConfig struct {
 	Host        string `toml:"host"`
 	Port        int    `toml:"port"`
 	OpenBrowser bool   `toml:"open_browser"`
+	Access      string `toml:"access"` // loopback | lan | relay
+}
+
+type AuthConfig struct {
+	Enabled bool `toml:"enabled"`
 }
 
 type RunnerConfig struct {
@@ -154,6 +160,9 @@ func applyEnv(c *Config) {
 	if v := os.Getenv("SYMVIBE_OPEN_BROWSER"); v != "" {
 		c.Server.OpenBrowser = v == "1" || strings.EqualFold(v, "true")
 	}
+	if v := os.Getenv("SYMVIBE_ACCESS"); v != "" {
+		c.Server.Access = v
+	}
 	if v := os.Getenv("SYMVIBE_RUNNER_BACKEND"); v != "" {
 		c.Runner.Backend = v
 	}
@@ -179,8 +188,17 @@ func expandPaths(c *Config) {
 // Validate checks structural integrity: every category model_ref resolves, the
 // default category exists, the runner backend is known.
 func (c *Config) Validate() error {
-	if err := validateLoopbackHost(c.Server.Host); err != nil {
-		return err
+	switch c.Server.Access {
+	case "", "loopback":
+		if err := validateLoopbackHost(c.Server.Host); err != nil {
+			return err
+		}
+	case "lan", "relay":
+		if !c.Auth.Enabled {
+			return fmt.Errorf("config: server.access %q requires auth.enabled = true", c.Server.Access)
+		}
+	default:
+		return fmt.Errorf("config: unknown server.access %q (want loopback|lan|relay)", c.Server.Access)
 	}
 	switch c.Runner.Backend {
 	case "opencode", "claudecode", "api":
@@ -217,8 +235,11 @@ func validateLoopbackHost(host string) error {
 // ---------------------------------------------------------------------------
 
 func configDir() string { return xdg("XDG_CONFIG_HOME", ".config") }
-func dataDir() string   { return xdg("XDG_DATA_HOME", filepath.Join(".local", "share")) }
-func cacheDir() string  { return xdg("XDG_CACHE_HOME", ".cache") }
+
+// DataDir returns the XDG data directory for symvibe (~/.local/share/symvibe).
+func DataDir() string  { return xdg("XDG_DATA_HOME", filepath.Join(".local", "share")) }
+func dataDir() string  { return DataDir() }
+func cacheDir() string { return xdg("XDG_CACHE_HOME", ".cache") }
 
 func xdg(env, fallback string) string {
 	if v := os.Getenv(env); v != "" {

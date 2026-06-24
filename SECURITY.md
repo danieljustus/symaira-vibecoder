@@ -4,12 +4,41 @@
 
 symvibe runs **locally** and is a single-user developer tool.
 
-- **Loopback only.** The board/API binds to `127.0.0.1` by default
+- **Loopback only (default).** The board/API binds to `127.0.0.1` by default
   (`[server] host`). It is not authenticated — do not bind it to a public
   interface. Nothing in symvibe exposes opencode itself to the network.
 - **The board can run code.** Pressing *Run* makes opencode execute an AI coding
   agent against your working tree (git operations, file edits, `gh` calls, …).
   Treat the board like a terminal: only run it on repositories you trust.
+
+## Network access modes
+
+`server.access` (env: `SYMVIBE_ACCESS`, CLI: `--access`) controls which
+interfaces the board binds to and whether authentication is required.
+
+| Mode      | Bind       | Auth required | TLS    | Use case                    |
+|-----------|------------|---------------|--------|-----------------------------|
+| loopback  | 127.0.0.1  | no            | no     | Local-only (default)        |
+| lan       | 0.0.0.0    | **yes**       | **yes**| Same-network access (e.g. iPhone) |
+| relay     | 0.0.0.0    | **yes**       | **yes**| Public/relay access         |
+
+**Fail-closed:** `lan` and `relay` modes refuse to start unless `auth.enabled`
+is `true`. Authentication uses Bearer tokens (see Pairing section). Without a
+valid token, all `/api/*` and `/events` endpoints return 401.
+
+## Pairing flow
+
+Remote devices authenticate via the pairing protocol:
+
+1. Run `symvibe pair` on the server to generate a one-time pairing code and
+   display a QR code in the terminal.
+2. The QR payload is `symvibe://pair?n=<hostname>&p=<port>&h=<host>&fp=<sha256>&c=<code>`.
+3. The client scans the QR, calls `POST /api/pair/complete` with the code and a
+   device name. The server returns a persistent Bearer token.
+4. The client stores the token and sends it with every request via
+   `Authorization: Bearer <token>` header or `?token=` query parameter.
+
+Pairing codes are single-use and expire after 120 seconds.
 
 ## `--dangerously-skip-permissions`
 

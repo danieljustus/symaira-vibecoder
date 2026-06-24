@@ -10,28 +10,38 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/danieljustus/symaira-vibecoder/internal/auth"
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
+	"github.com/danieljustus/symaira-vibecoder/internal/devices"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
 )
 
-// Server wires the engine + config + embedded UI into an http.Handler.
 type Server struct {
-	cfg  *config.Config
-	eng  *engine.Engine
-	dist fs.FS
-	mux  *http.ServeMux
+	cfg     *config.Config
+	eng     *engine.Engine
+	dist    fs.FS
+	mux     *http.ServeMux
+	store   auth.TokenStore
+	devices *devices.Registry
+	pairing *pairingStore
 }
 
-// New builds the server. dist is the embedded web/dist filesystem (rooted at the
-// dist directory) serving the board.
 func New(cfg *config.Config, eng *engine.Engine, dist fs.FS) *Server {
-	s := &Server{cfg: cfg, eng: eng, dist: dist}
+	s := &Server{cfg: cfg, eng: eng, dist: dist, pairing: newPairingStore()}
 	s.routes()
 	return s
 }
 
-// Handler returns the root http.Handler (for http.Server / tests).
-func (s *Server) Handler() http.Handler { return s.mux }
+func (s *Server) SetTokenStore(store auth.TokenStore) { s.store = store }
+func (s *Server) SetDevices(d *devices.Registry)      { s.devices = d }
+
+func (s *Server) Handler() http.Handler {
+	if s.store == nil {
+		return s.mux
+	}
+	bypass := s.cfg.Server.Access == "" || s.cfg.Server.Access == "loopback"
+	return auth.Middleware(s.mux, s.store, bypass)
+}
 
 func (s *Server) routes() {
 	m := http.NewServeMux()
@@ -57,6 +67,13 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/run", s.runCycle)
 	m.HandleFunc("POST /api/run/step", s.runStep)
 	m.HandleFunc("POST /api/run/control", s.runControl)
+
+	// Pairing and device management.
+	m.HandleFunc("POST /api/pair/start", s.pairStart)
+	m.HandleFunc("POST /api/pair/complete", s.pairComplete)
+	m.HandleFunc("GET /api/pair/qr", s.pairQR)
+	m.HandleFunc("GET /api/devices", s.listDevices)
+	m.HandleFunc("DELETE /api/devices/{id}", s.deleteDevice)
 
 	// Live status stream.
 	m.HandleFunc("GET /events", s.sse)
