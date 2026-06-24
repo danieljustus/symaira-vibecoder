@@ -18,6 +18,14 @@ passiert autonom.
 
 ![symvibe board in action](docs/symvibe-board.png)
 
+## Features
+
+- **Baukasten UX** — drag-and-drop cycle builder with customizable phases and steps
+- **opencode integration** — drives opencode headless via `Runner` interface (no fork required)
+- **Model bindings per category/step** — assign different AI models to different parts of your cycle
+- **Autonomous cycle execution** — run your entire workflow with a single click
+- **iOS/macOS client** — native SwiftUI client for monitoring and controlling cycles
+
 ```
   symvibe serve  →  http://127.0.0.1:4317
   ┌──────────── Cycle ────────────────────────────────┐
