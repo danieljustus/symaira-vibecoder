@@ -3,7 +3,7 @@ import Foundation
 import UIKit
 #endif
 #if canImport(UserNotifications)
-import UserNotifications
+@preconcurrency import UserNotifications
 #endif
 
 /// Manages push notification registration and device token handling.
