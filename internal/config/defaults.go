@@ -26,6 +26,7 @@ func Default() *Config {
 			Host:        "127.0.0.1",
 			Port:        4317,
 			OpenBrowser: true,
+			Access:      "loopback",
 		},
 		Runner: RunnerConfig{
 			Backend:         "opencode",

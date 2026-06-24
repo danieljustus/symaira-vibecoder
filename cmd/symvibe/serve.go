@@ -25,6 +25,7 @@ func serveCmd() *cobra.Command {
 	var port int
 	var dir string
 	var noOpen bool
+	var access string
 
 	cmd := &cobra.Command{
 		Use:   "serve",
@@ -46,6 +47,10 @@ func serveCmd() *cobra.Command {
 			if noOpen {
 				cfg.Server.OpenBrowser = false
 			}
+			if access != "" {
+				cfg.Server.Access = access
+			}
+			cfg.Server.Host = deriveBindHost(cfg)
 			if err := cfg.Validate(); err != nil {
 				return err
 			}
@@ -102,5 +107,23 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().IntVar(&port, "port", 0, "bind port (default 4317 from config; pass 0 for a random free port)")
 	cmd.Flags().StringVar(&dir, "dir", "", "working directory the cycle operates on (default: current dir)")
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "do not open the browser")
+	cmd.Flags().StringVar(&access, "access", "", "network access mode: loopback (default), lan, relay")
 	return cmd
+}
+
+func deriveBindHost(cfg *config.Config) string {
+	switch cfg.Server.Access {
+	case "lan":
+		if cfg.Server.Host == "127.0.0.1" || cfg.Server.Host == "" {
+			return "0.0.0.0"
+		}
+		return cfg.Server.Host
+	case "relay":
+		return "0.0.0.0"
+	default:
+		if cfg.Server.Host == "" {
+			return "127.0.0.1"
+		}
+		return cfg.Server.Host
+	}
 }
