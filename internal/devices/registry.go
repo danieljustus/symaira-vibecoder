@@ -69,9 +69,6 @@ func (r *Registry) Authenticate(token string) bool {
 	defer r.mu.RUnlock()
 	for i := range r.devices {
 		if verifyToken(token, r.devices[i].Salt, r.devices[i].TokenHash) {
-			now := time.Now().UTC().Format(time.RFC3339)
-			r.devices[i].LastSeen = now
-			go r.save()
 			return true
 		}
 	}
