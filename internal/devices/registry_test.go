@@ -47,8 +47,8 @@ func TestRegistryList(t *testing.T) {
 	path := filepath.Join(dir, "devices.json")
 	r := &Registry{path: path}
 
-	r.Add("d1", "")
-	r.Add("d2", "")
+	_, _, _ = r.Add("d1", "")
+	_, _, _ = r.Add("d2", "")
 	list := r.List()
 	if len(list) != 2 {
 		t.Fatalf("want 2 devices, got %d", len(list))
@@ -116,7 +116,7 @@ func TestRegistryTokenHashIsSalted(t *testing.T) {
 		t.Fatal("expected 1 device")
 	}
 	list2 := &Registry{path: filepath.Join(t.TempDir(), "devices.json")}
-	list2.Add("d2", "same-password")
+	_, _, _ = list2.Add("d2", "same-password")
 	list2Devices := list2.List()
 	if list[0].TokenHash == list2Devices[0].TokenHash {
 		t.Fatal("same password with different salts must produce different hashes")
@@ -129,7 +129,7 @@ func TestRegistryConcurrentAccess(t *testing.T) {
 	done := make(chan struct{})
 	for i := 0; i < 10; i++ {
 		go func(n int) {
-			r.Add("d", "")
+			_, _, _ = r.Add("d", "")
 			done <- struct{}{}
 		}(i)
 	}

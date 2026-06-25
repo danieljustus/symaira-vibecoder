@@ -101,7 +101,7 @@ func generate(certPath, keyPath, hostname string) (*CertPair, error) {
 	if err != nil {
 		return nil, fmt.Errorf("tls: create cert file: %w", err)
 	}
-	defer certFile.Close()
+	defer func() { _ = certFile.Close() }()
 	if err := pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certDER}); err != nil {
 		return nil, fmt.Errorf("tls: write cert: %w", err)
 	}
@@ -114,7 +114,7 @@ func generate(certPath, keyPath, hostname string) (*CertPair, error) {
 	if err != nil {
 		return nil, fmt.Errorf("tls: create key file: %w", err)
 	}
-	defer keyFile.Close()
+	defer func() { _ = keyFile.Close() }()
 	if err := pem.Encode(keyFile, &pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}); err != nil {
 		return nil, fmt.Errorf("tls: write key: %w", err)
 	}

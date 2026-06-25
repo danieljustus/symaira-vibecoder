@@ -72,7 +72,7 @@ func TestBuildHints(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			hints := buildHints(c.backend, c.opencodeOK, c.info, c.gitOK, c.ghOK)
 			if c.wantKeys == nil {
-				if hints != nil && len(hints) > 0 {
+				if len(hints) > 0 {
 					t.Fatalf("expected no hints, got %v", hints)
 				}
 				return
