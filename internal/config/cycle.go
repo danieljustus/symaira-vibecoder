@@ -165,12 +165,16 @@ func SaveCycle(c *Cycle) error {
 	return os.Rename(tmp, path) // atomic replace
 }
 
+func isAlphaNumOrDash(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_'
+}
+
 func validateCycleID(id string) error {
 	if id == "" {
 		return fmt.Errorf("cycle: empty id")
 	}
 	for _, r := range id {
-		if !(r >= 'a' && r <= 'z') && !(r >= 'A' && r <= 'Z') && !(r >= '0' && r <= '9') && r != '-' && r != '_' {
+		if !isAlphaNumOrDash(r) {
 			return fmt.Errorf("cycle: invalid id %q", id)
 		}
 	}
