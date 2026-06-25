@@ -156,7 +156,7 @@ func SaveCycle(c *Cycle) error {
 		return err
 	}
 	if err := toml.NewEncoder(f).Encode(c); err != nil {
-		f.Close()
+		_ = f.Close()
 		return err
 	}
 	if err := f.Close(); err != nil {

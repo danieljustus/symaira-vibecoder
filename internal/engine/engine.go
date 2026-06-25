@@ -218,7 +218,7 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	if skip, reason, serr := EvalAutoSkip(ctx, step.AutoSkip, dir); serr != nil {
 		e.log(runID, step.ID, "log", "sensor "+step.AutoSkip.Sensor+" failed ("+serr.Error()+") — running step")
 	} else if skip {
-		e.setStatus(cycle, step, config.StatusSkipped, runID)
+		_ = e.setStatus(cycle, step, config.StatusSkipped, runID)
 		e.log(runID, step.ID, "log", "auto-skip: "+reason)
 		return config.StatusSkipped
 	}
@@ -232,7 +232,7 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	spec, rm, err := e.res.BuildRunSpec(*step, dir)
 	if err != nil {
 		e.log(runID, step.ID, "error", "resolve model: "+err.Error())
-		e.setStatus(cycle, step, config.StatusFailed, runID)
+		_ = e.setStatus(cycle, step, config.StatusFailed, runID)
 		return config.StatusFailed
 	}
 	msg := composeMessage(*step)
@@ -254,7 +254,7 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		ch, rerr := e.run.RunStep(ctx, req)
 		if rerr != nil {
 			e.log(runID, step.ID, "error", "runner: "+rerr.Error())
-			e.setStatus(cycle, step, config.StatusFailed, runID)
+			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
 			return config.StatusFailed
 		}
 

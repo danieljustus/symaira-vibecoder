@@ -101,7 +101,7 @@ func (r *APIRunner) RunStep(ctx context.Context, req StepRequest) (<-chan RunEve
 	go func() {
 		defer close(ch)
 		defer cancel()
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			msg := anthropicErrorMessage(resp)
