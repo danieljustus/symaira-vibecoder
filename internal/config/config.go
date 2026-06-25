@@ -242,8 +242,8 @@ func validateLoopbackHost(host string) error {
 func configDir() string { return xdg("XDG_CONFIG_HOME", ".config") }
 
 // DataDir returns the XDG data directory for symvibe (~/.local/share/symvibe).
-func DataDir() string  { return xdg("XDG_DATA_HOME", filepath.Join(".local", "share")) }
-func dataDir() string  { return DataDir() }
+func DataDir() string { return xdg("XDG_DATA_HOME", filepath.Join(".local", "share")) }
+func dataDir() string { return DataDir() }
 func xdg(env, fallback string) string {
 	if v := os.Getenv(env); v != "" {
 		return filepath.Join(v, "symvibe")
