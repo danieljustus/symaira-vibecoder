@@ -49,7 +49,7 @@ func (m *MDNSAdvertiser) Shutdown() {
 	if m == nil || m.srv == nil {
 		return
 	}
-	m.srv.Shutdown()
+	_ = m.srv.Shutdown()
 	slog.Info("mDNS advertisement stopped")
 }
 

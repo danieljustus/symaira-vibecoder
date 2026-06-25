@@ -285,13 +285,13 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 
 		// Failed. Do not retry on engine-level cancel/timeout.
 		if ctx.Err() != nil {
-			e.setStatus(cycle, step, config.StatusPending, runID)
+			_ = e.setStatus(cycle, step, config.StatusPending, runID)
 			e.log(runID, step.ID, "log", "cancelled — step reset to pending")
 			return config.StatusPending
 		}
 		next, ok := config.NextAttempt(spec, rm)
 		if !ok {
-			e.setStatus(cycle, step, config.StatusFailed, runID)
+			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
 			e.log(runID, step.ID, "error", "all models exhausted — "+doneErr)
 			return config.StatusFailed
 		}

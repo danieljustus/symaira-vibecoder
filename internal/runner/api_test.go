@@ -61,7 +61,7 @@ func TestAPIRunnerRunStepSuccess(t *testing.T) {
 			"data: [DONE]",
 		}
 		for _, line := range lines {
-			fmt.Fprintln(w, line)
+			_, _ = fmt.Fprintln(w, line)
 			flusher.Flush()
 		}
 	}))
@@ -156,7 +156,7 @@ func TestAPIRunnerRunStepCancelled(t *testing.T) {
 				return
 			default:
 			}
-			fmt.Fprintf(w, "data: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"x\"}}\n")
+			_, _ = fmt.Fprintf(w, "data: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"x\"}}\n")
 			flusher.Flush()
 			time.Sleep(5 * time.Millisecond)
 		}
@@ -269,7 +269,7 @@ func TestAnthropicErrorMessage(t *testing.T) {
 
 	resp, _ := http.Get(srv.URL)
 	msg := anthropicErrorMessage(resp)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if !strings.Contains(msg, "Forbidden") || !strings.Contains(msg, "plan expired") {
 		t.Fatalf("unexpected error message: %q", msg)
 	}

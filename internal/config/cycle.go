@@ -170,7 +170,7 @@ func validateCycleID(id string) error {
 		return fmt.Errorf("cycle: empty id")
 	}
 	for _, r := range id {
-		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_') {
+		if !(r >= 'a' && r <= 'z') && !(r >= 'A' && r <= 'Z') && !(r >= '0' && r <= '9') && r != '-' && r != '_' {
 			return fmt.Errorf("cycle: invalid id %q", id)
 		}
 	}
