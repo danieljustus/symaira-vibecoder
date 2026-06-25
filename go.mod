@@ -3,7 +3,7 @@ module github.com/danieljustus/symaira-vibecoder
 go 1.26.4
 
 require (
-	github.com/BurntSushi/toml v1.5.0
+	github.com/BurntSushi/toml v1.6.0
 	github.com/spf13/cobra v1.10.2
 )
 
