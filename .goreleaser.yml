@@ -18,6 +18,13 @@ builds:
       - -s -w -X github.com/danieljustus/symaira-vibecoder/internal/version.Version={{ .Version }}
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
+    hooks:
+      post:
+        - cmd: |
+            if [ "{{ .Os }}" = "darwin" ] && [ -n "${CODESIGN_IDENTITY:-}" ]; then
+              codesign -s "$CODESIGN_IDENTITY" --timestamp --options runtime "{{ .Path }}"
+              echo "Signed {{ .Path }}"
+            fi
 
 archives:
   - id: default
