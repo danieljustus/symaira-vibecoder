@@ -17,17 +17,24 @@ import (
 )
 
 type Server struct {
-	cfg     *config.Config
-	eng     *engine.Engine
-	dist    fs.FS
-	mux     *http.ServeMux
-	store   auth.TokenStore
-	devices *devices.Registry
-	pairing *pairingStore
+	cfg      *config.Config
+	eng      *engine.Engine
+	dist     fs.FS
+	mux      *http.ServeMux
+	store    auth.TokenStore
+	devices  *devices.Registry
+	pairing  *pairingStore
+	libCache *libraryCache
 }
 
 func New(cfg *config.Config, eng *engine.Engine, dist fs.FS) *Server {
-	s := &Server{cfg: cfg, eng: eng, dist: dist, pairing: newPairingStore()}
+	s := &Server{
+		cfg:      cfg,
+		eng:      eng,
+		dist:     dist,
+		pairing:  newPairingStore(),
+		libCache: newLibraryCache(defaultLibraryTTL),
+	}
 	s.routes()
 	return s
 }
@@ -58,6 +65,9 @@ func (s *Server) routes() {
 	m.HandleFunc("GET /api/cycle/export", s.exportCycle)
 	m.HandleFunc("POST /api/cycle/import", s.importCycle)
 	m.HandleFunc("POST /api/cycle/assist", s.assistCycle)
+
+	// Community template library.
+	m.HandleFunc("GET /api/library/index", s.getLibraryIndex)
 
 	// Discovery / config surfaces for the GUI pickers.
 	m.HandleFunc("GET /api/version", s.getVersion)

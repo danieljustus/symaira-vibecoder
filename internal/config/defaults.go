@@ -23,10 +23,11 @@ func Default() *Config {
 	return &Config{
 		SchemaVersion: 1,
 		Server: ServerConfig{
-			Host:        "127.0.0.1",
-			Port:        4317,
-			OpenBrowser: true,
-			Access:      "loopback",
+			Host:            "127.0.0.1",
+			Port:            4317,
+			OpenBrowser:     true,
+			Access:          "loopback",
+			LibraryIndexURL: "https://raw.githubusercontent.com/danieljustus/symvibe-templates/main/index.json",
 		},
 		Runner: RunnerConfig{
 			Backend:         "opencode",

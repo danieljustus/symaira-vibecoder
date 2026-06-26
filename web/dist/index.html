@@ -1208,6 +1208,125 @@
     border-color: var(--color-accent);
   }
 
+  /* Community Template Library Modal */
+  #libraryModal {
+    max-width: 720px;
+    width: 95%;
+    max-height: 85vh;
+  }
+  #libraryModal .modal-body {
+    overflow-y: auto;
+    max-height: calc(85vh - 140px);
+  }
+  .library-search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .library-search-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+  }
+  .library-search-bar input:focus {
+    border-color: var(--color-accent);
+  }
+  .library-tag-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .library-tag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .library-tag.active,
+  .library-tag:hover {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+  }
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .library-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .library-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px var(--color-accent-dim, rgba(var(--accent-rgb,200,160,80),0.18));
+  }
+  .library-card-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .library-card-author {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .library-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex: 1;
+  }
+  .library-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .library-card-tag {
+    font-size: 10px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 2px 7px;
+    color: var(--text-muted);
+  }
+  .library-card-actions {
+    margin-top: 6px;
+  }
+  .library-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 0;
+    font-size: 13px;
+    grid-column: 1 / -1;
+  }
+  .library-loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 0;
+    font-size: 13px;
+    grid-column: 1 / -1;
+  }
+
 </style>
 </head>
 <body>
@@ -1257,6 +1376,9 @@
     </button>
     <button class="ghost" id="btnImport" title="Import template from file or clipboard">
       <span id="btnImportIcon"></span> Import
+    </button>
+    <button class="ghost" id="btnLibrary" title="Community Template Library">
+      <span id="btnLibraryIcon"></span> Library
     </button>
   </div>
 
@@ -1465,6 +1587,27 @@
   </div>
 </dialog>
 
+<!-- Community Template Library Modal -->
+<dialog id="libraryModal">
+  <div class="modal-header">
+    <span id="iconLibrary"></span>
+    <h3>Community Template Library</h3>
+    <button class="icon-btn" id="btnCloseLibrary" title="Close"><span id="iconCloseLibrary"></span></button>
+  </div>
+  <div class="modal-body">
+    <div class="library-search-bar">
+      <input type="text" id="librarySearch" placeholder="Templates durchsuchen…" autocomplete="off" />
+    </div>
+    <div class="library-tag-filter" id="libraryTagFilter"></div>
+    <div class="library-grid" id="libraryGrid">
+      <div class="library-loading">Lade Templates…</div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="ghost" id="btnCloseLibraryFooter">Schließen</button>
+  </div>
+</dialog>
+
 <!-- Dialog Modal for Template Import -->
 <dialog id="importModal">
   <div class="modal-head">
@@ -1618,6 +1761,10 @@ function injectStaticIcons() {
   $("#iconSettings").innerHTML = getIcon("settings");
   $("#iconClose").innerHTML = getIcon("cross");
   $("#iconAlert").innerHTML = getIcon("alert");
+  // Library modal icons
+  if ($("#btnLibraryIcon")) $("#btnLibraryIcon").innerHTML = getIcon("search");
+  if ($("#iconLibrary")) $("#iconLibrary").innerHTML = getIcon("search");
+  if ($("#iconCloseLibrary")) $("#iconCloseLibrary").innerHTML = getIcon("cross");
 }
 
 async function refreshDoctor() {
@@ -2659,6 +2806,136 @@ function showToast(message, type = "info") {
 /* ---------------- Utilities ---------------- */
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function cssEsc(s){ return String(s).replace(/["\\]/g,"\\$&"); }
+
+/* ---------------- Community Template Library ---------------- */
+let libraryEntries = null;   // cached fetch result
+let libraryActiveTag = null; // currently selected tag filter
+
+async function openLibrary() {
+  const dialog = $("#libraryModal");
+  dialog.showModal();
+
+  if (libraryEntries === null) {
+    renderLibraryGrid(null); // show loading state
+    try {
+      libraryEntries = await api.get("/api/library/index");
+    } catch (err) {
+      libraryEntries = [];
+      showToast("Fehler beim Laden der Template-Bibliothek", "error");
+    }
+  }
+
+  libraryActiveTag = null;
+  $("#librarySearch").value = "";
+  renderTagFilter();
+  renderLibraryGrid(libraryEntries);
+}
+
+function renderTagFilter() {
+  const container = $("#libraryTagFilter");
+  if (!libraryEntries || !libraryEntries.length) { container.innerHTML = ""; return; }
+
+  const allTags = [...new Set(libraryEntries.flatMap(e => e.tags || []))].sort();
+  if (!allTags.length) { container.innerHTML = ""; return; }
+
+  container.innerHTML = allTags.map(tag =>
+    `<span class="library-tag${libraryActiveTag === tag ? ' active' : ''}" data-tag="${esc(tag)}">${esc(tag)}</span>`
+  ).join("");
+
+  container.querySelectorAll(".library-tag").forEach(el => {
+    el.onclick = () => {
+      libraryActiveTag = libraryActiveTag === el.dataset.tag ? null : el.dataset.tag;
+      renderTagFilter();
+      applyLibraryFilter();
+    };
+  });
+}
+
+function applyLibraryFilter() {
+  if (!libraryEntries) return;
+  const q = $("#librarySearch").value.trim().toLowerCase();
+  const filtered = libraryEntries.filter(e => {
+    const matchTag = !libraryActiveTag || (e.tags || []).includes(libraryActiveTag);
+    const matchSearch = !q ||
+      (e.name || "").toLowerCase().includes(q) ||
+      (e.description || "").toLowerCase().includes(q) ||
+      (e.author || "").toLowerCase().includes(q) ||
+      (e.tags || []).some(t => t.toLowerCase().includes(q));
+    return matchTag && matchSearch;
+  });
+  renderLibraryGrid(filtered);
+}
+
+function renderLibraryGrid(entries) {
+  const grid = $("#libraryGrid");
+  if (entries === null) {
+    grid.innerHTML = '<div class="library-loading">Lade Templates…</div>';
+    return;
+  }
+  if (!entries.length) {
+    grid.innerHTML = '<div class="library-empty">Keine Templates gefunden.</div>';
+    return;
+  }
+  grid.innerHTML = entries.map(e => {
+    const tags = (e.tags || []).map(t => `<span class="library-card-tag">${esc(t)}</span>`).join("");
+    return `
+      <div class="library-card">
+        <div class="library-card-name">${esc(e.name || e.id)}</div>
+        <div class="library-card-author">by ${esc(e.author || "unknown")}</div>
+        ${e.description ? `<div class="library-card-desc">${esc(e.description)}</div>` : ""}
+        ${tags ? `<div class="library-card-tags">${tags}</div>` : ""}
+        <div class="library-card-actions">
+          <button class="ghost" style="width:100%;font-size:12px;" onclick="libraryUseTemplate(${JSON.stringify(esc(e.url))},'${esc(e.name || e.id)}')">
+            ${getIcon("download")} Template verwenden
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function libraryUseTemplate(url, name) {
+  $("#libraryModal").close();
+  showToast(`Lade "${name}"…`);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const tplJson = await resp.json();
+    // Feed into the existing import flow.
+    activeImportTemplate = tplJson;
+    // Pre-fill the import modal textarea for transparency.
+    showImportModal();
+    $("#importTextarea").value = JSON.stringify(tplJson, null, 2);
+    showToast(`"${name}" geladen — Import-Dialog geöffnet`, "success");
+  } catch (err) {
+    showToast(`Fehler beim Laden des Templates: ${err.message}`, "error");
+  }
+}
+
+// Wire Library button and modal close buttons.
+if ($("#btnLibrary")) {
+  $("#btnLibrary").onclick = openLibrary;
+}
+if ($("#btnCloseLibrary")) {
+  $("#btnCloseLibrary").onclick = () => $("#libraryModal").close();
+}
+if ($("#btnCloseLibraryFooter")) {
+  $("#btnCloseLibraryFooter").onclick = () => $("#libraryModal").close();
+}
+// Search field live filter.
+if ($("#librarySearch")) {
+  $("#librarySearch").oninput = applyLibraryFilter;
+}
+// Click-outside-to-close for libraryModal.
+if (!('closedBy' in HTMLDialogElement.prototype)) {
+  const ld = $("#libraryModal");
+  if (ld) ld.addEventListener('click', (event) => {
+    if (event.target !== ld) return;
+    const rect = ld.getBoundingClientRect();
+    const inside = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                    rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+    if (!inside) ld.close();
+  });
+}
 
 boot().catch(e => {
   console.error("boot failed:", e);
