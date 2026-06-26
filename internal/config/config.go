@@ -37,12 +37,12 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host             string `toml:"host"`
-	Port             int    `toml:"port"`
-	OpenBrowser      bool   `toml:"open_browser"`
-	Access           string `toml:"access"`        // loopback | lan | relay
-	MulticastDNS     bool   `toml:"multicast_dns"` // advertise _symvibe._tcp in lan mode
-	LibraryIndexURL  string `toml:"library_index_url"` // community template library index; empty → built-in default
+	Host            string `toml:"host"`
+	Port            int    `toml:"port"`
+	OpenBrowser     bool   `toml:"open_browser"`
+	Access          string `toml:"access"`            // loopback | lan | relay
+	MulticastDNS    bool   `toml:"multicast_dns"`     // advertise _symvibe._tcp in lan mode
+	LibraryIndexURL string `toml:"library_index_url"` // community template library index; empty → built-in default
 }
 
 type AuthConfig struct {
