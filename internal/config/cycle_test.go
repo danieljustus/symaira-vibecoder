@@ -114,3 +114,70 @@ func TestCyclePersistenceRejectsPathLikeIDs(t *testing.T) {
 		t.Fatalf("SaveCycle rejected a valid id: %v", err)
 	}
 }
+
+func TestCycleDefinition(t *testing.T) {
+	c := &Cycle{
+		ID:            "test-cycle",
+		Name:          "Test",
+		Description:   "Description",
+		SchemaVersion: 1,
+		Phases: []Phase{
+			{
+				ID:   "p1",
+				Name: "Phase 1",
+				Steps: []Step{
+					{
+						ID:       "s1",
+						Name:     "Step 1",
+						Status:   StatusDone,
+						Category: "fast",
+						ModelOverride: &Model{
+							ID:             "my-model",
+							FallbackModels: []string{"fallback-1"},
+						},
+						AutoSkip: &AutoSkip{
+							Sensor: "git-dirty",
+							When:   "clean",
+						},
+					},
+					{
+						ID:     "s2",
+						Name:   "Step 2",
+						Status: StatusFailed,
+					},
+				},
+			},
+		},
+	}
+
+	def := c.Definition()
+
+	if def.ID != c.ID || def.Name != c.Name || def.Description != c.Description {
+		t.Errorf("Definition modified basic metadata")
+	}
+
+	if len(def.Phases) != len(c.Phases) {
+		t.Fatalf("want %d phases, got %d", len(c.Phases), len(def.Phases))
+	}
+
+	if len(def.Phases[0].Steps) != len(c.Phases[0].Steps) {
+		t.Fatalf("want %d steps, got %d", len(c.Phases[0].Steps), len(def.Phases[0].Steps))
+	}
+
+	s1 := def.Phases[0].Steps[0]
+	if s1.Status != StatusPending {
+		t.Errorf("want StatusPending for s1, got %q", s1.Status)
+	}
+	if s1.ModelOverride == nil || s1.ModelOverride.ID != "my-model" {
+		t.Errorf("model override not copied correctly: %+v", s1.ModelOverride)
+	}
+	if s1.AutoSkip == nil || s1.AutoSkip.Sensor != "git-dirty" {
+		t.Errorf("autoskip not copied correctly: %+v", s1.AutoSkip)
+	}
+
+	s2 := def.Phases[0].Steps[1]
+	if s2.Status != StatusPending {
+		t.Errorf("want StatusPending for s2, got %q", s2.Status)
+	}
+}
+

@@ -247,3 +247,36 @@ func (c *Cycle) ResetStuck() (n int) {
 	}
 	return n
 }
+
+// Definition returns a clone of the Cycle with all step status values set to pending (StatusPending)
+func (c *Cycle) Definition() *Cycle {
+	clone := *c
+	clone.Phases = make([]Phase, len(c.Phases))
+	for pi, p := range c.Phases {
+		clone.Phases[pi] = p
+		clone.Phases[pi].Steps = make([]Step, len(p.Steps))
+		for si, s := range p.Steps {
+			sClone := s
+			sClone.Status = StatusPending
+			if s.DependsOn != nil {
+				sClone.DependsOn = make([]string, len(s.DependsOn))
+				copy(sClone.DependsOn, s.DependsOn)
+			}
+			if s.ModelOverride != nil {
+				mo := *s.ModelOverride
+				if s.ModelOverride.FallbackModels != nil {
+					mo.FallbackModels = make([]string, len(s.ModelOverride.FallbackModels))
+					copy(mo.FallbackModels, s.ModelOverride.FallbackModels)
+				}
+				sClone.ModelOverride = &mo
+			}
+			if s.AutoSkip != nil {
+				askip := *s.AutoSkip
+				sClone.AutoSkip = &askip
+			}
+			clone.Phases[pi].Steps[si] = sClone
+		}
+	}
+	return &clone
+}
+
