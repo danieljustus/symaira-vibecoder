@@ -2,11 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
+	"github.com/danieljustus/symaira-vibecoder/internal/runner"
 )
 
 // loadCycle returns the active (default) cycle from disk, materializing the seed
@@ -310,5 +312,187 @@ func (s *Server) importCycle(w http.ResponseWriter, r *http.Request) {
 	if !s.persist(w, c) {
 		return
 	}
+	writeOK(w, c)
+}
+
+func (s *Server) assistCycle(w http.ResponseWriter, r *http.Request) {
+	if s.busy() {
+		writeErr(w, http.StatusConflict, "a run is in progress")
+		return
+	}
+	var req struct {
+		Cycle       *config.Cycle `json:"cycle"`
+		Instruction string        `json:"instruction"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+	if req.Cycle == nil {
+		writeErr(w, http.StatusBadRequest, "missing cycle field")
+		return
+	}
+	if strings.TrimSpace(req.Instruction) == "" {
+		writeErr(w, http.StatusBadRequest, "missing instruction field")
+		return
+	}
+
+	// Build catalog
+	skills, _ := config.DiscoverSkills()
+	var skillNames []string
+	for _, sk := range skills {
+		skillNames = append(skillNames, sk.Name)
+	}
+
+	var categoryNames []string
+	for catName := range s.cfg.Categories {
+		categoryNames = append(categoryNames, catName)
+	}
+
+	agents, _ := config.DiscoverAgents(s.cfg.Runner.OpencodeBin)
+	var agentNames []string
+	for _, ag := range agents {
+		agentNames = append(agentNames, ag.Name)
+	}
+	hasDefaultAgent := false
+	for _, name := range agentNames {
+		if strings.EqualFold(name, s.cfg.Defaults.Agent) {
+			hasDefaultAgent = true
+			break
+		}
+	}
+	if !hasDefaultAgent && s.cfg.Defaults.Agent != "" {
+		agentNames = append(agentNames, s.cfg.Defaults.Agent)
+	}
+
+	sensorNames := engine.SensorNames()
+
+	cat := config.Catalog{
+		Skills:     skillNames,
+		Categories: categoryNames,
+		Agents:     agentNames,
+		Sensors:    sensorNames,
+	}
+
+	// Marshal catalog and cycle to JSON for the prompt
+	cycleBytes, err := json.MarshalIndent(req.Cycle, "", "  ")
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "marshal cycle: "+err.Error())
+		return
+	}
+	catBytes, err := json.MarshalIndent(cat, "", "  ")
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "marshal catalog: "+err.Error())
+		return
+	}
+
+	prompt := fmt.Sprintf("You are a Baukasten Cycle configuration assistant.\n"+
+		"Your task is to modify a given Cycle according to the user's instruction.\n\n"+
+		"Available catalog of building blocks (skills, categories, agents, and sensors):\n%s\n\n"+
+		"Current Cycle JSON:\n%s\n\n"+
+		"Instruction:\n%s\n\n"+
+		"Return ONLY the complete modified Cycle JSON. The output must match the Baukasten Cycle schema, "+
+		"and its kind MUST be \"symvibe.template\" if returning a template wrapper, or a valid Cycle JSON.\n"+
+		"Do not include any prose, explanations, markdown formatting (such as ```json), or additional fields.",
+		string(catBytes), string(cycleBytes), req.Instruction)
+
+	// Invoke runner
+	runnerInstance := s.eng.Runner()
+	if runnerInstance == nil {
+		writeErr(w, http.StatusServiceUnavailable, "no coding agent runner configured")
+		return
+	}
+
+	// We prepare a StepRequest
+	stepReq := runner.StepRequest{
+		RunID:      "assist",
+		StepID:     "assist",
+		Message:    prompt,
+		WorkingDir: s.cfg.Runner.WorkingDir,
+		SkipPerms:  true,
+	}
+
+	// Run step and gather the logs
+	ctx := r.Context()
+	ch, err := runnerInstance.RunStep(ctx, stepReq)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, "runner failed to start: "+err.Error())
+		return
+	}
+
+	var sb strings.Builder
+	var doneErr string
+	for ev := range ch {
+		if ev.Kind == runner.EventDone {
+			doneErr = ev.Err
+			continue
+		}
+		if ev.Kind == runner.EventLog {
+			sb.WriteString(ev.Text)
+			sb.WriteString("\n")
+		}
+	}
+
+	if doneErr != "" {
+		writeErr(w, http.StatusInternalServerError, "assist run failed: "+doneErr)
+		return
+	}
+
+	// Parse model output as Cycle or Template
+	respText := strings.TrimSpace(sb.String())
+	// Strip markdown blocks if the model wrapped it in ```json ... ```
+	if strings.HasPrefix(respText, "```") {
+		if idx := strings.Index(respText, "\n"); idx != -1 {
+			respText = respText[idx+1:]
+		}
+		respText = strings.TrimSuffix(respText, "```")
+		respText = strings.TrimSpace(respText)
+	}
+
+	// Unmarshal. Try Template first, if it fails try Cycle
+	var tpl config.Template
+	var c *config.Cycle
+	if err := json.Unmarshal([]byte(respText), &tpl); err == nil && tpl.Kind == "symvibe.template" {
+		c, err = config.ImportTemplateStruct(&tpl)
+		if err != nil {
+			writeErr(w, http.StatusBadRequest, "invalid template structure: "+err.Error())
+			return
+		}
+	} else {
+		var directCycle config.Cycle
+		if err := json.Unmarshal([]byte(respText), &directCycle); err != nil {
+			writeErr(w, http.StatusBadRequest, "failed to parse model output as JSON Cycle: "+err.Error()+"\nRaw output:\n"+respText)
+			return
+		}
+		c = &directCycle
+	}
+
+	// Validate the imported cycle
+	if err := c.Validate(); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid cycle structure: "+err.Error())
+		return
+	}
+
+	// Run capability check (requirements validation)
+	manifest := config.TemplateManifest{
+		ID:          c.ID,
+		Name:        c.Name,
+		Description: c.Description,
+		Version:     "1.0.0",
+		Author:      "symvibe-assist",
+	}
+	tplExport := c.ExportTemplate(manifest)
+	missing := config.CheckRequirements(tplExport, cat)
+	if !missing.Empty() {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"error":     "missing requirements",
+			"missing":   missing,
+			"available": cat,
+		})
+		return
+	}
+
 	writeOK(w, c)
 }

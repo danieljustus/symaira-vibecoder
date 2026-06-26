@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
+	"github.com/danieljustus/symaira-vibecoder/internal/runner"
 )
 
 func TestExportCycleHandler(t *testing.T) {
@@ -183,5 +185,149 @@ func TestImportCycleHandler(t *testing.T) {
 	}
 	if remappedCycle.Phases[0].Steps[0].Category != "deep" {
 		t.Errorf("expected remapped category to be 'deep', got %q", remappedCycle.Phases[0].Steps[0].Category)
+	}
+}
+
+func TestAssistCycleHandler(t *testing.T) {
+	s := newTestServer(t, true)
+
+	s.cfg.Categories = map[string]config.CategoryBinding{
+		"fast": {ModelRef: "fast-model"},
+		"deep": {ModelRef: "deep-model"},
+	}
+	s.cfg.Models = map[string]config.Model{
+		"fast-model": {ID: "provider/fast"},
+		"deep-model": {ID: "provider/deep"},
+	}
+
+	testCycle := &config.Cycle{
+		ID:            "assist-test",
+		Name:          "Assist Test",
+		Description:   "Test",
+		SchemaVersion: 1,
+		Phases: []config.Phase{
+			{
+				ID:   "p1",
+				Name: "Phase 1",
+				Steps: []config.Step{
+					{
+						ID:       "s1",
+						Name:     "Step 1",
+						Category: "fast",
+					},
+				},
+			},
+		},
+	}
+
+	mRunner := s.eng.Runner().(*mockRunner)
+	mRunner.runStep = func(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
+		ch := make(chan runner.RunEvent, 4)
+		ch <- runner.RunEvent{Kind: runner.EventLog, Text: "```json\n"}
+		ch <- runner.RunEvent{Kind: runner.EventLog, Text: `{
+			"schema_version": 1,
+			"id": "assist-test-modified",
+			"name": "Assist Test Modified",
+			"description": "Modified Description",
+			"phases": [
+				{
+					"id": "p1",
+					"name": "Phase 1 Modified",
+					"steps": [
+						{
+							"id": "s1",
+							"name": "Step 1 Modified",
+							"category": "deep"
+						}
+					]
+				}
+			]
+		}`}
+		ch <- runner.RunEvent{Kind: runner.EventLog, Text: "\n```"}
+		ch <- runner.RunEvent{Kind: runner.EventDone}
+		close(ch)
+		return ch, nil
+	}
+
+	body, _ := json.Marshal(map[string]any{
+		"cycle":       testCycle,
+		"instruction": "Rename phase and step, change category to deep",
+	})
+	req := httptest.NewRequest("POST", "/api/cycle/assist", bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected assist to return 200, got %d. Body: %s", rr.Code, rr.Body.String())
+	}
+
+	var respCycle config.Cycle
+	if err := json.Unmarshal(rr.Body.Bytes(), &respCycle); err != nil {
+		t.Fatalf("failed to decode assist response: %v", err)
+	}
+
+	if respCycle.ID != "assist-test-modified" || respCycle.Name != "Assist Test Modified" {
+		t.Errorf("unexpected cycle response: %+v", respCycle)
+	}
+	if len(respCycle.Phases) != 1 || respCycle.Phases[0].Steps[0].Category != "deep" {
+		t.Errorf("unexpected category or step: %+v", respCycle.Phases[0].Steps[0])
+	}
+
+	bodyEmpty, _ := json.Marshal(map[string]any{
+		"cycle": nil,
+	})
+	req = httptest.NewRequest("POST", "/api/cycle/assist", bytes.NewReader(bodyEmpty))
+	rr = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for empty request, got %d", rr.Code)
+	}
+
+	mRunner.runStep = func(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
+		ch := make(chan runner.RunEvent, 2)
+		ch <- runner.RunEvent{Kind: runner.EventLog, Text: "this is not valid JSON"}
+		ch <- runner.RunEvent{Kind: runner.EventDone}
+		close(ch)
+		return ch, nil
+	}
+	req = httptest.NewRequest("POST", "/api/cycle/assist", bytes.NewReader(body))
+	rr = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for invalid JSON output, got %d. Body: %s", rr.Code, rr.Body.String())
+	}
+
+	mRunner.runStep = func(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
+		ch := make(chan runner.RunEvent, 2)
+		ch <- runner.RunEvent{Kind: runner.EventLog, Text: `{
+			"schema_version": 1,
+			"id": "assist-test-missing",
+			"name": "Assist Test Missing",
+			"phases": [
+				{
+					"id": "p1",
+					"name": "Phase 1",
+					"steps": [
+						{
+							"id": "s1",
+							"name": "Step 1",
+							"category": "non-existent-category"
+						}
+					]
+				}
+			]
+		}`}
+		ch <- runner.RunEvent{Kind: runner.EventDone}
+		close(ch)
+		return ch, nil
+	}
+	req = httptest.NewRequest("POST", "/api/cycle/assist", bytes.NewReader(body))
+	rr = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for missing requirements, got %d. Body: %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "missing requirements") {
+		t.Errorf("expected missing requirements error payload, got %s", rr.Body.String())
 	}
 }

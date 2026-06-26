@@ -63,6 +63,11 @@ func (e *Engine) Available(ctx context.Context) (bool, runner.Info) {
 	return e.run.Available(ctx)
 }
 
+// Runner returns the configured runner.Runner instance.
+func (e *Engine) Runner() runner.Runner {
+	return e.run
+}
+
 // State returns the current run snapshot.
 func (e *Engine) State() RunState {
 	e.mu.Lock()

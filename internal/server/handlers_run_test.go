@@ -18,6 +18,7 @@ import (
 type mockRunner struct {
 	available bool
 	info      runner.Info
+	runStep   func(context.Context, runner.StepRequest) (<-chan runner.RunEvent, error)
 }
 
 func (r *mockRunner) Name() string { return "test" }
@@ -26,7 +27,10 @@ func (r *mockRunner) Available(_ context.Context) (bool, runner.Info) {
 	return r.available, r.info
 }
 
-func (r *mockRunner) RunStep(_ context.Context, _ runner.StepRequest) (<-chan runner.RunEvent, error) {
+func (r *mockRunner) RunStep(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
+	if r.runStep != nil {
+		return r.runStep(ctx, req)
+	}
 	return nil, errors.New("not implemented")
 }
 
