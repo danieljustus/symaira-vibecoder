@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -117,10 +118,10 @@ func (s StepStatus) IsHalting() bool {
 // LoadCycle reads a cycle by id from the data dir. If it does not exist and id
 // is the seed name, it materializes the embedded seed first.
 func LoadCycle(id string) (*Cycle, error) {
-	if err := validateCycleID(id); err != nil {
+	path, err := safeCyclePath(id)
+	if err != nil {
 		return nil, err
 	}
-	path := filepath.Join(CyclesDir(), id+".toml")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if id == SeedCycleName {
 			if err := materializeSeed(path); err != nil {
@@ -143,13 +144,13 @@ func LoadCycle(id string) (*Cycle, error) {
 
 // SaveCycle atomically writes a cycle back to the data dir (GUI edit path).
 func SaveCycle(c *Cycle) error {
-	if err := validateCycleID(c.ID); err != nil {
+	path, err := safeCyclePath(c.ID)
+	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(CyclesDir(), 0o755); err != nil {
 		return err
 	}
-	path := filepath.Join(CyclesDir(), c.ID+".toml")
 	tmp := path + ".tmp"
 	f, err := os.Create(tmp)
 	if err != nil {
@@ -179,6 +180,23 @@ func validateCycleID(id string) error {
 		}
 	}
 	return nil
+}
+
+// safeCyclePath returns a cleaned path for a cycle file that is guaranteed to
+// reside within CyclesDir. This is defense-in-depth on top of validateCycleID:
+// even if the id somehow contained path separators, the result would still be
+// confined to the expected directory.
+func safeCyclePath(id string) (string, error) {
+	if err := validateCycleID(id); err != nil {
+		return "", err
+	}
+	dir := CyclesDir()
+	path := filepath.Join(dir, id+".toml")
+	cleaned := filepath.Clean(path)
+	if !strings.HasPrefix(cleaned, dir) {
+		return "", fmt.Errorf("cycle: path %q escapes cycles directory", id)
+	}
+	return cleaned, nil
 }
 
 // materializeSeed copies the embedded seed Baukasten to the data dir on first run.
