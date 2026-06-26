@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-26
+
+### Added
+
+- **Template export & import** — export cycles as reusable templates (JSON), import with automatic capability check and remap dialog (#53, #54)
+- **POST /api/cycle/assist** — AI-guided cycle editing: send a cycle + natural-language instruction, get back a validated, capability-checked cycle (#55)
+- **Community template library** — searchable panel in the board to browse, filter, and import shared Baukasten cycles from a configurable index (#56)
+- Runtime status separated from cycle definition for export-safe model (#53)
+
+### Fixed
+
+- **Security: go/path-injection** — added `safeCyclePath()` to prevent path traversal in `LoadCycle`/`SaveCycle` (#57)
+
+### Closed Issues
+
+- #47 Trenne Laufzeit-Status von der Cycle-Definition
+- #48 Template-Export/Import mit Manifest und automatisch abgeleiteten requires
+- #49 Capability-Check beim Template-Import
+- #50 Board-UI: Template exportieren/importieren
+- #51 POST /api/cycle/assist endpoint
+- #52 Community template library
+- #57 go/path-injection (security alert)
+
 ## [0.2.0] - 2026-06-25
 
 ### Added
@@ -55,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/danieljustus/symaira-vibecoder/releases/tag/v0.1.0
