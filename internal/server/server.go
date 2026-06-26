@@ -55,6 +55,8 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/cycle/step/{id}/duplicate", s.duplicateStep)
 	m.HandleFunc("POST /api/cycle/phase", s.addPhase)
 	m.HandleFunc("DELETE /api/cycle/phase/{id}", s.deletePhase)
+	m.HandleFunc("GET /api/cycle/export", s.exportCycle)
+	m.HandleFunc("POST /api/cycle/import", s.importCycle)
 
 	// Discovery / config surfaces for the GUI pickers.
 	m.HandleFunc("GET /api/version", s.getVersion)

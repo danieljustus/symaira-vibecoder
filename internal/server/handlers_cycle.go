@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
@@ -199,4 +200,115 @@ func (s *Server) deletePhase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeOK(w, map[string]bool{"ok": true})
+}
+
+func (s *Server) exportCycle(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		id = s.cfg.Defaults.Cycle
+	}
+	c, err := config.LoadCycle(id)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, "cycle not found: "+err.Error())
+		return
+	}
+	manifest := config.TemplateManifest{
+		ID:          c.ID,
+		Name:        c.Name,
+		Description: c.Description,
+		Version:     "1.0.0",
+		Author:      "symvibe",
+		Tags:        []string{},
+	}
+	t := c.ExportTemplate(manifest)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", `attachment; filename="`+id+`.json"`)
+	if err := json.NewEncoder(w).Encode(t); err != nil {
+		writeErr(w, http.StatusInternalServerError, err.Error())
+	}
+}
+
+func (s *Server) importCycle(w http.ResponseWriter, r *http.Request) {
+	if s.busy() {
+		writeErr(w, http.StatusConflict, "a run is in progress")
+		return
+	}
+	var req struct {
+		Template *config.Template  `json:"template"`
+		Remap    map[string]string `json:"remap"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeErr(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+	if req.Template == nil {
+		writeErr(w, http.StatusBadRequest, "missing template field")
+		return
+	}
+
+	// Build catalog
+	skills, _ := config.DiscoverSkills()
+	var skillNames []string
+	for _, sk := range skills {
+		skillNames = append(skillNames, sk.Name)
+	}
+
+	var categoryNames []string
+	for catName := range s.cfg.Categories {
+		categoryNames = append(categoryNames, catName)
+	}
+
+	agents, _ := config.DiscoverAgents(s.cfg.Runner.OpencodeBin)
+	var agentNames []string
+	for _, ag := range agents {
+		agentNames = append(agentNames, ag.Name)
+	}
+	hasDefaultAgent := false
+	for _, name := range agentNames {
+		if strings.EqualFold(name, s.cfg.Defaults.Agent) {
+			hasDefaultAgent = true
+			break
+		}
+	}
+	if !hasDefaultAgent && s.cfg.Defaults.Agent != "" {
+		agentNames = append(agentNames, s.cfg.Defaults.Agent)
+	}
+
+	sensorNames := engine.SensorNames()
+
+	cat := config.Catalog{
+		Skills:     skillNames,
+		Categories: categoryNames,
+		Agents:     agentNames,
+		Sensors:    sensorNames,
+	}
+
+	// Apply remapping
+	req.Template.ApplyRemap(req.Remap)
+
+	// Check requirements
+	missing := config.CheckRequirements(req.Template, cat)
+	if !missing.Empty() {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"error":     "missing requirements",
+			"missing":   missing,
+			"available": cat,
+		})
+		return
+	}
+
+	// Import the cycle
+	c, err := config.ImportTemplateStruct(req.Template)
+	if err != nil {
+		writeErr(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Persist
+	if !s.persist(w, c) {
+		return
+	}
+	writeOK(w, c)
 }
