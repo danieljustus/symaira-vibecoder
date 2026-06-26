@@ -279,4 +279,3 @@ func (c *Cycle) Definition() *Cycle {
 	}
 	return &clone
 }
-

@@ -180,4 +180,3 @@ func TestCycleDefinition(t *testing.T) {
 		t.Errorf("want StatusPending for s2, got %q", s2.Status)
 	}
 }
-
