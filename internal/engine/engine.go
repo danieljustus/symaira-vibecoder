@@ -244,6 +244,13 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	e.log(runID, step.ID, "log", "▶ "+step.Name+"  ["+spec.Model+display(spec.Variant)+"]  via "+rm.Source)
 
 	// 4) Run with the fallback chain.
+	stepRunner := e.run
+	if step.BackendOverride != "" {
+		rcfg := e.cfg.Runner
+		rcfg.Backend = step.BackendOverride
+		stepRunner = runner.New(rcfg)
+	}
+
 	for {
 		req := runner.StepRequest{
 			RunID:      runID,
@@ -256,7 +263,7 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 			WorkingDir: dir,
 			SkipPerms:  e.cfg.Runner.SkipPermissions,
 		}
-		ch, rerr := e.run.RunStep(ctx, req)
+		ch, rerr := stepRunner.RunStep(ctx, req)
 		if rerr != nil {
 			e.log(runID, step.ID, "error", "runner: "+rerr.Error())
 			_ = e.setStatus(cycle, step, config.StatusFailed, runID)

@@ -41,6 +41,7 @@ type Step struct {
 	PromptSuffix  string `toml:"prompt_suffix" json:"prompt_suffix"` // optional extra instruction
 	Enabled       bool   `toml:"enabled" json:"enabled"`
 	ModelOverride *Model `toml:"model_override" json:"model_override,omitempty"` // optional per-step model
+	BackendOverride string `toml:"backend_override" json:"backend_override,omitempty"` // optional per-step runner backend
 
 	// AutoSkip is an optional data-driven skip rule. Before running the step the
 	// engine evaluates the named Sensor; if its value satisfies When, the step is

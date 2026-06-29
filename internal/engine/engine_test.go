@@ -162,3 +162,45 @@ func (f runnerFunc) Available(context.Context) (bool, runner.Info) {
 func (f runnerFunc) RunStep(ctx context.Context, req runner.StepRequest) (<-chan runner.RunEvent, error) {
 	return f(ctx, req)
 }
+
+func TestBackendOverrideInstantiatesNewRunner(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	cfg := config.Default()
+	cfg.Defaults.Cycle = "override-test"
+	cycle := &config.Cycle{ID: cfg.Defaults.Cycle, Phases: []config.Phase{{
+		ID: "phase", Steps: []config.Step{{
+			ID:              "step",
+			Enabled:         true,
+			BackendOverride: "api",
+		}},
+	}}}
+	if err := config.SaveCycle(cycle); err != nil {
+		t.Fatal(err)
+	}
+
+	run := &countingRunner{}
+	eng := New(cfg, config.NewResolver(cfg), run, NewBus())
+
+	if _, err := eng.StartCycle(); err != nil {
+		t.Fatal(err)
+	}
+
+	deadline := time.Now().Add(time.Second)
+	for eng.State().State != "idle" && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+
+	if run.calls != 0 {
+		t.Fatalf("expected default runner to be bypassed, but it was called %d times", run.calls)
+	}
+
+	stored, err := config.LoadCycle(cfg.Defaults.Cycle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, step := stored.FindStep("step")
+	if step == nil || step.Status != config.StatusFailed {
+		t.Fatalf("expected step to fail due to unavailable API runner, but status is %v", step.Status)
+	}
+}
+

@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestValidateAccessDefaultLoopback(t *testing.T) {
 	cfg := Default()
@@ -69,3 +72,21 @@ func TestValidateEmptyAccessDefaultsToLoopback(t *testing.T) {
 		t.Fatalf("empty access should be treated as loopback: %v", err)
 	}
 }
+
+func TestLoadLocalConfigOverride(t *testing.T) {
+	content := []byte("[runner]\nbackend = \"api\"\n")
+	if err := os.WriteFile(".symvibe.toml", content, 0o644); err != nil {
+		t.Fatalf("failed to write temp local config: %v", err)
+	}
+	defer os.Remove(".symvibe.toml")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if cfg.Runner.Backend != "api" {
+		t.Errorf("expected backend 'api' from local config override, got %q", cfg.Runner.Backend)
+	}
+}
+
