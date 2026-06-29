@@ -50,7 +50,7 @@ type AuthConfig struct {
 }
 
 type RunnerConfig struct {
-	Backend     string `toml:"backend"`      // opencode | claudecode | api
+	Backend     string `toml:"backend"`      // opencode | claudecode | api | aider | cline | local_api
 	OpencodeBin string `toml:"opencode_bin"` // empty -> auto-detect on PATH
 	APIKey      string `toml:"api_key"`      // Anthropic API key for backend="api"
 	WorkingDir  string `toml:"working_dir"`
@@ -63,6 +63,16 @@ type RunnerConfig struct {
 	SkipPermissions bool     `toml:"skip_permissions"`
 	RequestTimeout  Duration `toml:"request_timeout"`
 	MaxParallel     int      `toml:"max_parallel_subagents"`
+
+	// CLI-based agent backends (similar to opencode — drive a local binary headless).
+	AiderBin      string `toml:"aider_bin"`       // empty -> auto-detect on PATH
+	ClaudeCodeBin string `toml:"claude_code_bin"` // empty -> auto-detect on PATH
+	ClineBin      string `toml:"cline_bin"`       // empty -> auto-detect on PATH
+
+	// Local API backends (Ollama, LM Studio, MLX) — OpenAI-compatible endpoint.
+	LocalAPIEndpoint string `toml:"local_api_endpoint"` // e.g. "http://localhost:11434/v1"
+	LocalAPIToken    string `toml:"local_api_token"`    // optional auth token
+	LocalAPIModel    string `toml:"local_api_model"`    // model id for the local provider
 }
 
 // Model is one entry in the registry. id is the opencode "provider/model" id.
@@ -194,10 +204,31 @@ func applyEnv(c *Config) {
 	if v := os.Getenv("SYMVIBE_SKIP_PERMISSIONS"); v != "" {
 		c.Runner.SkipPermissions = v == "1" || strings.EqualFold(v, "true")
 	}
+	if v := os.Getenv("SYMVIBE_AIDER_BIN"); v != "" {
+		c.Runner.AiderBin = v
+	}
+	if v := os.Getenv("SYMVIBE_CLAUDE_CODE_BIN"); v != "" {
+		c.Runner.ClaudeCodeBin = v
+	}
+	if v := os.Getenv("SYMVIBE_CLINE_BIN"); v != "" {
+		c.Runner.ClineBin = v
+	}
+	if v := os.Getenv("SYMVIBE_LOCAL_API_ENDPOINT"); v != "" {
+		c.Runner.LocalAPIEndpoint = v
+	}
+	if v := os.Getenv("SYMVIBE_LOCAL_API_TOKEN"); v != "" {
+		c.Runner.LocalAPIToken = v
+	}
+	if v := os.Getenv("SYMVIBE_LOCAL_API_MODEL"); v != "" {
+		c.Runner.LocalAPIModel = v
+	}
 }
 
 func expandPaths(c *Config) {
 	c.Runner.OpencodeBin = expandHome(c.Runner.OpencodeBin)
+	c.Runner.AiderBin = expandHome(c.Runner.AiderBin)
+	c.Runner.ClaudeCodeBin = expandHome(c.Runner.ClaudeCodeBin)
+	c.Runner.ClineBin = expandHome(c.Runner.ClineBin)
 	c.Runner.WorkingDir = expandHome(c.Runner.WorkingDir)
 }
 
@@ -217,9 +248,9 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("config: unknown server.access %q (want loopback|lan|relay)", c.Server.Access)
 	}
 	switch c.Runner.Backend {
-	case "opencode", "claudecode", "api":
+	case "opencode", "claudecode", "api", "aider", "cline", "local_api":
 	default:
-		return fmt.Errorf("config: unknown runner.backend %q (want opencode|claudecode|api)", c.Runner.Backend)
+		return fmt.Errorf("config: unknown runner.backend %q (want opencode|claudecode|api|aider|cline|local_api)", c.Runner.Backend)
 	}
 	for name, cat := range c.Categories {
 		if cat.ModelRef == "" {

@@ -1548,7 +1548,15 @@
         <div id="backendOverrideGroup" style="display:none; flex-direction:column; gap:12px;">
           <div class="form-group">
             <label for="overrideBackend">Override Backend</label>
-            <input type="text" id="overrideBackend" placeholder="e.g. claudecode, api, opencode" />
+            <select id="overrideBackend">
+              <option value="">— inherit project default —</option>
+              <option value="opencode">opencode (default)</option>
+              <option value="aider">aider</option>
+              <option value="claudecode">claudecode</option>
+              <option value="cline">cline</option>
+              <option value="api">api (Anthropic)</option>
+              <option value="local_api">local_api (Ollama / LM Studio / MLX)</option>
+            </select>
           </div>
         </div>
       </div>
