@@ -16,7 +16,24 @@ verschiebbaren Karten zusammen (hinzufügen / entfernen / bearbeiten / per
 Drag-&-Drop umsortieren) und sagst dem Tool, es soll loslaufen — der Rest
 passiert autonom.
 
-![symvibe board in action](docs/symvibe-board.png)
+## Architecture
+
+```mermaid
+graph LR
+    Browser["🌐 Browser<br/><i>embedded board</i>"]
+    Server["internal/server<br/><i>net/http · SSE · embed</i>"]
+    Engine["internal/engine<br/><i>scheduler · sensors · bus</i>"]
+    Config["internal/config<br/><i>Cycle · Resolver · TOML</i>"]
+    Runner["internal/runner<br/><i>OpenCodeRunner</i>"]
+    OpenCode["opencode<br/><i>runtime peer</i>"]
+
+    Browser -- "REST /api/*" --> Server
+    Browser -- "GET /events (SSE)" --> Server
+    Server -- "Engine API" --> Engine
+    Engine -- "config.Resolver" --> Config
+    Engine -- "runner.Runner" --> Runner
+    Runner -- "os/exec" --> OpenCode
+```
 
 ## Features
 
