@@ -274,11 +274,15 @@ func TestSSEHeaders(t *testing.T) {
 	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
 	rr := httptest.NewRecorder()
 
-	go s.sse(rr, req)
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
 
 	time.Sleep(50 * time.Millisecond)
 	cancel()
-	time.Sleep(10 * time.Millisecond)
+	<-done
 
 	if ct := rr.Header().Get("Content-Type"); ct != "text/event-stream" {
 		t.Fatalf("want Content-Type text/event-stream, got %q", ct)
@@ -308,10 +312,15 @@ func TestSSEInitialEvent(t *testing.T) {
 	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
 	rr := httptest.NewRecorder()
 
-	go s.sse(rr, req)
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
 
 	time.Sleep(50 * time.Millisecond)
 	cancel()
+	<-done
 
 	body := rr.Body.String()
 	if !strings.Contains(body, "event: run_state") {
@@ -336,7 +345,11 @@ func TestSSEDeliversPublishedEvents(t *testing.T) {
 	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
 	rr := httptest.NewRecorder()
 
-	go s.sse(rr, req)
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
 
 	time.Sleep(50 * time.Millisecond)
 
@@ -344,7 +357,7 @@ func TestSSEDeliversPublishedEvents(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 	cancel()
-	time.Sleep(10 * time.Millisecond)
+	<-done
 
 	body := rr.Body.String()
 	if !strings.Contains(body, "event: step_status") {
@@ -372,11 +385,15 @@ func TestSSEPingComment(t *testing.T) {
 	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
 	rr := httptest.NewRecorder()
 
-	go s.sse(rr, req)
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
 
 	time.Sleep(50 * time.Millisecond)
 	cancel()
-	time.Sleep(10 * time.Millisecond)
+	<-done
 
 	body := rr.Body.String()
 	if !strings.Contains(body, "event: run_state") {
@@ -464,7 +481,11 @@ func TestSSEMultipleEvents(t *testing.T) {
 	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
 	w := &flushRecorder{ResponseRecorder: httptest.NewRecorder()}
 
-	go s.sse(w, req)
+	done := make(chan struct{})
+	go func() {
+		s.sse(w, req)
+		close(done)
+	}()
 
 	time.Sleep(50 * time.Millisecond)
 
@@ -474,7 +495,7 @@ func TestSSEMultipleEvents(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 	cancel()
-	time.Sleep(10 * time.Millisecond)
+	<-done
 
 	body := w.Body.String()
 	scanner := bufio.NewScanner(strings.NewReader(body))

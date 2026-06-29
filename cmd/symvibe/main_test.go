@@ -21,7 +21,9 @@ func captureStdout(t *testing.T, fn func()) string {
 
 	fn()
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("w.Close: %v", err)
+	}
 	os.Stdout = old
 
 	var buf bytes.Buffer
