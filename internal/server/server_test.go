@@ -1,11 +1,14 @@
 package server
 
 import (
+	"bufio"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
 	"github.com/danieljustus/symaira-vibecoder/internal/engine"
@@ -254,5 +257,257 @@ func TestStaticServesFiles(t *testing.T) {
 				t.Fatalf("want %d for %s, got %d", tt.wantCode, tt.path, rr.Code)
 			}
 		})
+	}
+}
+
+func TestSSEHeaders(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	rr := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	if ct := rr.Header().Get("Content-Type"); ct != "text/event-stream" {
+		t.Fatalf("want Content-Type text/event-stream, got %q", ct)
+	}
+	if cc := rr.Header().Get("Cache-Control"); cc != "no-cache" {
+		t.Fatalf("want Cache-Control no-cache, got %q", cc)
+	}
+	if conn := rr.Header().Get("Connection"); conn != "keep-alive" {
+		t.Fatalf("want Connection keep-alive, got %q", conn)
+	}
+	if noBuf := rr.Header().Get("X-Accel-Buffering"); noBuf != "no" {
+		t.Fatalf("want X-Accel-Buffering no, got %q", noBuf)
+	}
+}
+
+func TestSSEInitialEvent(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	rr := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "event: run_state") {
+		t.Fatalf("expected initial run_state event, got:\n%s", body)
+	}
+	if !strings.Contains(body, `"state":"idle"`) {
+		t.Fatalf("expected state=idle in initial event, got:\n%s", body)
+	}
+}
+
+func TestSSEDeliversPublishedEvents(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	rr := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	bus.Publish(engine.Event{Type: "step_status", StepID: "step-1", Status: "in_progress"})
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "event: step_status") {
+		t.Fatalf("expected step_status event, got:\n%s", body)
+	}
+	if !strings.Contains(body, `"step_id":"step-1"`) {
+		t.Fatalf("expected step_id=step-1, got:\n%s", body)
+	}
+	if !strings.Contains(body, `"status":"in_progress"`) {
+		t.Fatalf("expected status=in_progress, got:\n%s", body)
+	}
+}
+
+func TestSSEPingComment(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	rr := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "event: run_state") {
+		t.Fatalf("expected run_state event, got:\n%s", body)
+	}
+}
+
+// nonFlusherWriter wraps http.ResponseWriter but does NOT implement http.Flusher.
+type nonFlusherWriter struct {
+	header http.Header
+	code   int
+	body   strings.Builder
+}
+
+func (w *nonFlusherWriter) Header() http.Header         { return w.header }
+func (w *nonFlusherWriter) Write(b []byte) (int, error) { return w.body.Write(b) }
+func (w *nonFlusherWriter) WriteHeader(code int)        { w.code = code }
+
+func TestSSENoFlusher(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	req := httptest.NewRequest("GET", "/events", nil)
+	w := &nonFlusherWriter{header: http.Header{}}
+
+	s.sse(w, req)
+
+	if w.code != http.StatusInternalServerError {
+		t.Fatalf("want 500 when Flusher not supported, got %d", w.code)
+	}
+	if !strings.Contains(w.body.String(), "streaming unsupported") {
+		t.Fatalf("expected 'streaming unsupported' error, got: %s", w.body.String())
+	}
+}
+
+func TestSSEClientDisconnect(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	rr := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(rr, req)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("sse handler did not return after client disconnect")
+	}
+}
+
+type flushRecorder struct {
+	*httptest.ResponseRecorder
+	flushed bool
+}
+
+func (f *flushRecorder) Flush() { f.flushed = true }
+
+func TestSSEMultipleEvents(t *testing.T) {
+	cfg := config.Default()
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	s := New(cfg, eng, nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/events", nil)
+	w := &flushRecorder{ResponseRecorder: httptest.NewRecorder()}
+
+	done := make(chan struct{})
+	go func() {
+		s.sse(w, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	bus.Publish(engine.Event{Type: "step_status", StepID: "s1", Status: "done"})
+	bus.Publish(engine.Event{Type: "log", StepID: "s1", Kind: "log", Line: "hello"})
+	bus.Publish(engine.Event{Type: "run_state", State: "running"})
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := w.Body.String()
+	scanner := bufio.NewScanner(strings.NewReader(body))
+	eventCount := 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "event: ") {
+			eventCount++
+		}
+	}
+
+	if eventCount < 4 {
+		t.Fatalf("expected at least 4 events, got %d. Body:\n%s", eventCount, body)
 	}
 }
