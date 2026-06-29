@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-29
+
+### Added
+
+- **Aider, ClaudeCode, Cline, and local_api runner backends** — extends Runner interface with CLI-based agents and OpenAI-compatible API adapters (#68)
+- **Project-wise and per-step runner backend overrides** — configure runner backend per project or per step (#59)
+- **GoReleaser release workflow** — automated GitHub releases with macOS signing and notarization (#58)
+
+### Fixed
+
+- **GoReleaser post hook** — use `sh -c` for macOS runner compatibility
+- **Backend validation in runner factory** — explicit error for unsupported backends (#66)
+
+### Closed Issues
+
+- #60 Support additional runner backends
+- #64 Backend validation missing in runner factory
+- #65 Tests for runner factory and backend detection
+
 ## [0.3.0] - 2026-06-26
 
 ### Added
@@ -78,7 +97,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/danieljustus/symaira-vibecoder/releases/tag/v0.1.0
