@@ -1,9 +1,9 @@
 // Package runner abstracts the coding-agent backend that actually executes a
-// cycle step. The MVP ships one implementation — OpenCodeRunner, which drives
-// the locally installed `opencode` binary — but the Runner interface is the
-// single swap point for future backends (ClaudeCodeRunner, ApiRunner, or an
-// embedded opencode fork). symvibe owns the orchestration; the backend is a peer
-// it drives, never a compile-time dependency on opencode internals.
+// cycle step. Supported backends: OpenCodeRunner (opencode), APIRunner (Anthropic
+// API), CLIRunner (aider, claudecode, cline), and LocalAPIRunner (Ollama, LM
+// Studio, MLX). The Runner interface is the single swap point for all backends.
+// symvibe owns the orchestration; the backend is a peer it drives, never a
+// compile-time dependency on agent internals.
 package runner
 
 import (
@@ -98,7 +98,54 @@ func New(cfg config.RunnerConfig) (Runner, error) {
 	case "api":
 		return NewAPIRunner(cfg.APIKey, timeout), nil
 	case "claudecode":
-		return nil, fmt.Errorf("%w: %q (not yet implemented)", ErrUnsupportedBackend, cfg.Backend)
+		bin := resolveCLIBin(cfg.ClaudeCodeBin, "claude")
+		if bin == "" {
+			return nil, fmt.Errorf("%w: %q (claude binary not found)", ErrUnsupportedBackend, cfg.Backend)
+		}
+		return NewCLIRunner(CLIConfig{
+			Name:    "claudecode",
+			BinPath: bin,
+			Timeout: timeout,
+			BuildArgs: func(req StepRequest) []string {
+				args := []string{"-p", req.Message, "--dangerously-skip-permissions", "--bare"}
+				if req.WorkingDir != "" {
+					args = append(args, "--dir", req.WorkingDir)
+				}
+				return args
+			},
+		}), nil
+	case "aider":
+		bin := resolveCLIBin(cfg.AiderBin, "aider")
+		if bin == "" {
+			return nil, fmt.Errorf("%w: %q (aider binary not found)", ErrUnsupportedBackend, cfg.Backend)
+		}
+		return NewCLIRunner(CLIConfig{
+			Name:    "aider",
+			BinPath: bin,
+			Timeout: timeout,
+			BuildArgs: func(req StepRequest) []string {
+				args := []string{"--message", req.Message, "--yes-always"}
+				if req.Model != "" {
+					args = append(args, "--model", req.Model)
+				}
+				return args
+			},
+		}), nil
+	case "cline":
+		bin := resolveCLIBin(cfg.ClineBin, "cline")
+		if bin == "" {
+			return nil, fmt.Errorf("%w: %q (cline binary not found)", ErrUnsupportedBackend, cfg.Backend)
+		}
+		return NewCLIRunner(CLIConfig{
+			Name:    "cline",
+			BinPath: bin,
+			Timeout: timeout,
+			BuildArgs: func(req StepRequest) []string {
+				return []string{req.Message, "--non-interactive"}
+			},
+		}), nil
+	case "local_api":
+		return NewLocalAPIRunner(cfg.LocalAPIEndpoint, cfg.LocalAPIToken, cfg.LocalAPIModel, timeout), nil
 	default:
 		return nil, fmt.Errorf("%w: %q", ErrUnsupportedBackend, cfg.Backend)
 	}
