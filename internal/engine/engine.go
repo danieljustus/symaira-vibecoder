@@ -248,7 +248,13 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	if step.BackendOverride != "" {
 		rcfg := e.cfg.Runner
 		rcfg.Backend = step.BackendOverride
-		stepRunner = runner.New(rcfg)
+		r, err := runner.New(rcfg)
+		if err != nil {
+			e.log(runID, step.ID, "error", "backend override: "+err.Error())
+			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
+			return config.StatusFailed
+		}
+		stepRunner = r
 	}
 
 	for {

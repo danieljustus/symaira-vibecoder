@@ -9,6 +9,7 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
@@ -79,17 +80,26 @@ type Runner interface {
 	RunStep(ctx context.Context, req StepRequest) (<-chan RunEvent, error)
 }
 
+// ErrUnsupportedBackend is returned by New when the configured backend is not
+// one of the supported values ("opencode", "api").
+var ErrUnsupportedBackend = errors.New("runner: unsupported backend")
+
 // New creates the configured backend. It is the single factory for Runner
 // implementations; serve.go and doctor.go use it instead of hardcoding one.
-func New(cfg config.RunnerConfig) Runner {
+// Returns ErrUnsupportedBackend for unknown backend values.
+func New(cfg config.RunnerConfig) (Runner, error) {
 	timeout := cfg.RequestTimeout.Std()
 	if timeout <= 0 {
 		timeout = 30 * time.Minute
 	}
 	switch cfg.Backend {
+	case "opencode", "":
+		return NewOpenCodeRunner(cfg.OpencodeBin, timeout), nil
 	case "api":
-		return NewAPIRunner(cfg.APIKey, timeout)
+		return NewAPIRunner(cfg.APIKey, timeout), nil
+	case "claudecode":
+		return nil, fmt.Errorf("%w: %q (not yet implemented)", ErrUnsupportedBackend, cfg.Backend)
 	default:
-		return NewOpenCodeRunner(cfg.OpencodeBin, timeout)
+		return nil, fmt.Errorf("%w: %q", ErrUnsupportedBackend, cfg.Backend)
 	}
 }
