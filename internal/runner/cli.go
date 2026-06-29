@@ -11,8 +11,8 @@ import (
 )
 
 type CLIConfig struct {
-	Name      string   // backend identifier ("aider", "claudecode", "cline")
-	BinPath   string   // resolved binary path ("" => unavailable)
+	Name      string // backend identifier ("aider", "claudecode", "cline")
+	BinPath   string // resolved binary path ("" => unavailable)
 	Timeout   time.Duration
 	BuildArgs func(req StepRequest) []string // backend-specific arg builder
 }

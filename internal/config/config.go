@@ -65,9 +65,9 @@ type RunnerConfig struct {
 	MaxParallel     int      `toml:"max_parallel_subagents"`
 
 	// CLI-based agent backends (similar to opencode — drive a local binary headless).
-	AiderBin     string `toml:"aider_bin"`      // empty -> auto-detect on PATH
+	AiderBin      string `toml:"aider_bin"`       // empty -> auto-detect on PATH
 	ClaudeCodeBin string `toml:"claude_code_bin"` // empty -> auto-detect on PATH
-	ClineBin     string `toml:"cline_bin"`      // empty -> auto-detect on PATH
+	ClineBin      string `toml:"cline_bin"`       // empty -> auto-detect on PATH
 
 	// Local API backends (Ollama, LM Studio, MLX) — OpenAI-compatible endpoint.
 	LocalAPIEndpoint string `toml:"local_api_endpoint"` // e.g. "http://localhost:11434/v1"

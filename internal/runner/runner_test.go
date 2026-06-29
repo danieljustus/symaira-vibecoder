@@ -42,7 +42,7 @@ func TestNewClaudecodeBinaryNotFound(t *testing.T) {
 	// Use a binary name that doesn't exist on PATH to ensure the factory returns an error.
 	// The configured path takes precedence, and if it doesn't exist AND the name isn't on PATH, we get an error.
 	_, err := New(config.RunnerConfig{
-		Backend:      "claudecode",
+		Backend:       "claudecode",
 		ClaudeCodeBin: "/nonexistent/path/to/nonexistent-binary-xyz",
 	})
 	if err == nil {
