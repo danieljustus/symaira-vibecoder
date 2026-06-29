@@ -622,6 +622,7 @@
   .badge.agent { color: var(--color-accent); border-color: var(--color-accent-dim); background: var(--color-accent-dim); }
   .badge.skip { color: var(--text-muted); border-color: var(--border-color); text-decoration: line-through; }
   .badge.prompt { color: var(--color-success); border-color: var(--color-success-dim); }
+  .badge.backend { color: #d946ef; border-color: rgba(217, 70, 239, 0.2); background: rgba(217, 70, 239, 0.1); }
 
   .card-actions {
     display: flex;
@@ -1532,6 +1533,26 @@
         </div>
       </div>
 
+      <!-- Backend Override section -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">
+          Backend Override
+          <label class="switch-container">
+            <span class="switch">
+              <input type="checkbox" id="toggleBackendOverride" />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+        
+        <div id="backendOverrideGroup" style="display:none; flex-direction:column; gap:12px;">
+          <div class="form-group">
+            <label for="overrideBackend">Override Backend</label>
+            <input type="text" id="overrideBackend" placeholder="e.g. claudecode, api, opencode" />
+          </div>
+        </div>
+      </div>
+
       <!-- AutoSkip Settings -->
       <div class="drawer-section">
         <div class="drawer-section-title">
@@ -1850,6 +1871,9 @@ function setupEventListeners() {
   $("#toggleModelOverride").onchange = e => {
     $("#modelOverrideGroup").style.display = e.target.checked ? "flex" : "none";
   };
+  $("#toggleBackendOverride").onchange = e => {
+    $("#backendOverrideGroup").style.display = e.target.checked ? "flex" : "none";
+  };
   $("#toggleAutoSkip").onchange = e => {
     $("#autoSkipGroup").style.display = e.target.checked ? "flex" : "none";
   };
@@ -2047,6 +2071,10 @@ function renderStepCard(ph, st, editable) {
   
   if(st.model_override) {
     binds += `<span class="badge ov" title="Model Override: ${esc(st.model_override.id)}">⮞ ${esc(st.model_override.id.split("/").pop())}</span>`;
+  }
+  
+  if(st.backend_override) {
+    binds += `<span class="badge backend" title="Backend Override: ${esc(st.backend_override)}">⚡ ${esc(st.backend_override)}</span>`;
   }
   
   if(st.auto_skip) {
@@ -2519,6 +2547,16 @@ function openDrawer(step) {
     $("#overrideFallbacks").value = "";
   }
   
+  // Backend Override details
+  const hasBackendOverride = !!step.backend_override;
+  $("#toggleBackendOverride").checked = hasBackendOverride;
+  $("#backendOverrideGroup").style.display = hasBackendOverride ? "flex" : "none";
+  if (hasBackendOverride) {
+    $("#overrideBackend").value = step.backend_override || "";
+  } else {
+    $("#overrideBackend").value = "";
+  }
+  
   // AutoSkip details
   const hasSkip = !!step.auto_skip;
   $("#toggleAutoSkip").checked = hasSkip;
@@ -2606,6 +2644,18 @@ async function applyStepChanges() {
     targetStep.auto_skip = { sensor, when };
   } else {
     targetStep.auto_skip = null;
+  }
+  
+  // Backend Override
+  if($("#toggleBackendOverride").checked) {
+    const backend = $("#overrideBackend").value.trim();
+    if(!backend) {
+      showToast("Backend Override erfordert die Angabe eines Backends", "error");
+      return;
+    }
+    targetStep.backend_override = backend;
+  } else {
+    targetStep.backend_override = null;
   }
 
   // Save back to server

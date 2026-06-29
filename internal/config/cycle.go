@@ -32,15 +32,16 @@ type Phase struct {
 // it to a model. ModelOverride, when non-nil, beats the category binding.
 // Status is RUNTIME state, persisted so the cycle knows where it left off.
 type Step struct {
-	ID            string `toml:"id" json:"id"`
-	Name          string `toml:"name" json:"name"`
-	Order         int    `toml:"order" json:"order"`
-	Skill         string `toml:"skill" json:"skill"`                 // opencode command/skill name
-	Category      string `toml:"category" json:"category"`           // model binding key
-	Agent         string `toml:"agent" json:"agent"`                 // optional opencode agent override
-	PromptSuffix  string `toml:"prompt_suffix" json:"prompt_suffix"` // optional extra instruction
-	Enabled       bool   `toml:"enabled" json:"enabled"`
-	ModelOverride *Model `toml:"model_override" json:"model_override,omitempty"` // optional per-step model
+	ID              string `toml:"id" json:"id"`
+	Name            string `toml:"name" json:"name"`
+	Order           int    `toml:"order" json:"order"`
+	Skill           string `toml:"skill" json:"skill"`                 // opencode command/skill name
+	Category        string `toml:"category" json:"category"`           // model binding key
+	Agent           string `toml:"agent" json:"agent"`                 // optional opencode agent override
+	PromptSuffix    string `toml:"prompt_suffix" json:"prompt_suffix"` // optional extra instruction
+	Enabled         bool   `toml:"enabled" json:"enabled"`
+	ModelOverride   *Model `toml:"model_override" json:"model_override,omitempty"`     // optional per-step model
+	BackendOverride string `toml:"backend_override" json:"backend_override,omitempty"` // optional per-step runner backend
 
 	// AutoSkip is an optional data-driven skip rule. Before running the step the
 	// engine evaluates the named Sensor; if its value satisfies When, the step is
