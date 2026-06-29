@@ -203,4 +203,3 @@ func TestBackendOverrideInstantiatesNewRunner(t *testing.T) {
 		t.Fatalf("expected step to fail due to unavailable API runner, but status is %v", step.Status)
 	}
 }
-

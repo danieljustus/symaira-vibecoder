@@ -78,7 +78,7 @@ func TestLoadLocalConfigOverride(t *testing.T) {
 	if err := os.WriteFile(".symvibe.toml", content, 0o644); err != nil {
 		t.Fatalf("failed to write temp local config: %v", err)
 	}
-	defer os.Remove(".symvibe.toml")
+	defer func() { _ = os.Remove(".symvibe.toml") }()
 
 	cfg, err := Load("")
 	if err != nil {
@@ -89,4 +89,3 @@ func TestLoadLocalConfigOverride(t *testing.T) {
 		t.Errorf("expected backend 'api' from local config override, got %q", cfg.Runner.Backend)
 	}
 }
-
