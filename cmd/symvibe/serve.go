@@ -58,7 +58,10 @@ func serveCmd() *cobra.Command {
 			}
 
 			res := config.NewResolver(cfg)
-			run := runner.New(cfg.Runner)
+			run, err := runner.New(cfg.Runner)
+			if err != nil {
+				return fmt.Errorf("runner: %w", err)
+			}
 			bus := engine.NewBus()
 			eng := engine.New(cfg, res, run, bus)
 			srv := server.New(cfg, eng, web.DistFS())
