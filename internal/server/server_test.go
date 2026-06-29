@@ -392,8 +392,8 @@ type nonFlusherWriter struct {
 }
 
 func (w *nonFlusherWriter) Header() http.Header         { return w.header }
-func (w *nonFlusherWriter) Write(b []byte) (int, error)  { return w.body.Write(b) }
-func (w *nonFlusherWriter) WriteHeader(code int)         { w.code = code }
+func (w *nonFlusherWriter) Write(b []byte) (int, error) { return w.body.Write(b) }
+func (w *nonFlusherWriter) WriteHeader(code int)        { w.code = code }
 
 func TestSSENoFlusher(t *testing.T) {
 	cfg := config.Default()

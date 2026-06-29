@@ -13,7 +13,10 @@ import (
 func captureStdout(t *testing.T, fn func()) string {
 	t.Helper()
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe: %v", err)
+	}
 	os.Stdout = w
 
 	fn()
@@ -22,7 +25,9 @@ func captureStdout(t *testing.T, fn func()) string {
 	os.Stdout = old
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("buf.ReadFrom: %v", err)
+	}
 	return buf.String()
 }
 
@@ -117,10 +122,14 @@ func TestGeneratePairCode(t *testing.T) {
 		t.Fatalf("expected 6-character code, got %d: %s", len(code), code)
 	}
 	for _, c := range code {
-		if !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'H') || c == 'J' || c == 'K' || (c >= 'L' && c <= 'N') || (c >= 'P' && c <= 'Z')) {
+		if !isValidPairChar(c) {
 			t.Fatalf("unexpected character in pair code: %c", c)
 		}
 	}
+}
+
+func isValidPairChar(c rune) bool {
+	return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'H') || c == 'J' || c == 'K' || (c >= 'L' && c <= 'N') || (c >= 'P' && c <= 'Z')
 }
 
 func TestBuildPairPayload(t *testing.T) {
