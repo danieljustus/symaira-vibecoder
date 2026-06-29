@@ -16,7 +16,24 @@ verschiebbaren Karten zusammen (hinzufügen / entfernen / bearbeiten / per
 Drag-&-Drop umsortieren) und sagst dem Tool, es soll loslaufen — der Rest
 passiert autonom.
 
-![symvibe board in action](docs/symvibe-board.png)
+## Architecture
+
+```mermaid
+graph LR
+    Browser["🌐 Browser<br/><i>embedded board</i>"]
+    Server["internal/server<br/><i>net/http · SSE · embed</i>"]
+    Engine["internal/engine<br/><i>scheduler · sensors · bus</i>"]
+    Config["internal/config<br/><i>Cycle · Resolver · TOML</i>"]
+    Runner["internal/runner<br/><i>opencode · api · aider · claudecode · cline · local_api</i>"]
+    OpenCode["opencode<br/><i>runtime peer</i>"]
+
+    Browser -- "REST /api/*" --> Server
+    Browser -- "GET /events (SSE)" --> Server
+    Server -- "Engine API" --> Engine
+    Engine -- "config.Resolver" --> Config
+    Engine -- "runner.Runner" --> Runner
+    Runner -- "os/exec" --> OpenCode
+```
 
 ## Features
 
@@ -63,17 +80,56 @@ go install github.com/danieljustus/symaira-vibecoder/cmd/symvibe@latest
 symvibe serve
 ```
 
-Voraussetzungen für *Ausführen*:
+### Runner-Backends
 
-- **opencode-Backend (Default):** [`opencode`](https://opencode.ai) auf dem PATH
-  oder unter `~/.opencode/bin`. `symvibe doctor` meldet, wenn die Version zu alt
-  ist, und zeigt Install-Hinweise.
-- **API-Backend:** setze `runner.backend = "api"` und `runner.api_key` (oder
-  `SYMVIBE_ANTHROPIC_API_KEY`). Damit läuft symvibe ohne installiertes
-  opencode.
-- **git** ist erforderlich; **gh** ist optional (nur für GitHub-Workflows).
+symvibe treibt Coding-Agents über ein austauschbares `Runner`-Interface an.
+Welches Backend zum Einsatz kommt, wird über `runner.backend` in
+`~/.config/symvibe/config.toml` oder die Env-Variable `SYMVIBE_RUNNER_BACKEND`
+gesteuert.
+
+| Backend | Beschreibung | Voraussetzung |
+|---------|-------------|---------------|
+| `opencode` *(Default)* | Treibt [`opencode`](https://opencode.ai) headless über `opencode run --format json`. Volle Model-/Skill-/Agent-Kontrolle. | `opencode` auf PATH oder `opencode_bin` |
+| `api` | Direkte Anthropic-Claude-API — kein opencode nötig. | `api_key` oder `SYMVIBE_ANTHROPIC_API_KEY` |
+| `aider` | Treibt [aider](https://aider.chat) CLI headless (`--message`). | `aider` auf PATH oder `aider_bin` |
+| `claudecode` | Treibt Claude Code CLI headless (`-p`). | `claude` auf PATH oder `claude_code_bin` |
+| `cline` | Treibt [Cline](https://github.com/cline/cline) CLI headless. | `cline` auf PATH oder `cline_bin` |
+| `local_api` | Lokaler OpenAI-kompatibler Endpoint (Ollama, LM Studio, MLX). | `local_api_endpoint` (z.B. `http://localhost:11434/v1`) |
 
 Ohne ausführbaren Backend ist das Board read-only.
+
+**Kurzbeispiele:**
+
+```toml
+# ~/.config/symvibe/config.toml
+[runner]
+backend = "opencode"            # oder: api | aider | claudecode | cline | local_api
+opencode_bin = ""               # leer = auto-detect auf PATH
+
+# Für api-Backend:
+# backend = "api"
+# api_key = "sk-ant-..."
+
+# Für aider-Backend:
+# backend = "aider"
+# aider_bin = "/usr/local/bin/aider"
+
+# Für local_api-Backend (Ollama):
+# backend = "local_api"
+# local_api_endpoint = "http://localhost:11434/v1"
+# local_api_model = "llama3.1"
+```
+
+```bash
+# Override via Environment
+export SYMVIBE_RUNNER_BACKEND=api
+export SYMVIBE_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Voraussetzungen:**
+
+- **git** ist erforderlich; **gh** ist optional (nur für GitHub-Workflows).
+- `symvibe doctor` prüft alle konfigurierten Backends und zeigt Install-Hinweise.
 
 ## Nutzung
 
@@ -115,6 +171,33 @@ Der Cycle (Baukasten) liegt editierbar unter
 `~/.local/share/symvibe/cycles/<id>.toml`; der Seed stammt aus
 [`config/seed-cycle.toml`](config/seed-cycle.toml) (8 Phasen aus
 `docs/Grundidee.csv`).
+
+## Backend-Override
+
+Der Runner-Backend lässt sich auf drei Ebenen konfigurieren — jede höhere
+Ebene schlägt die niedrigere:
+
+1. **Global** — `~/.config/symvibe/config.toml` oder `SYMVIBE_RUNNER_BACKEND`
+2. **Projektweit** — `.symvibe.toml` im Projektroot (gleiches TOML-Schema)
+3. **Pro Schritt** — `backend_override` im Cycle-TOML
+
+```toml
+# Projektweiter Override: .symvibe.toml im Repo-Root
+[runner]
+backend = "aider"       # dieses Projekt nutzt aider statt opencode
+```
+
+```toml
+# Pro-Schritt-Override im Cycle (cycles/<id>.toml)
+[[phases.steps]]
+id = "1.1"
+name = "Sync"
+backend_override = "local_api"   # diesen Schritt über lokales API laufen lassen
+```
+
+**Auflösungsreihenfolge:** Schritt-Override > Projekt-Override > Global >
+Built-in Default (`opencode`). Bei einem Fehler wird die
+`fallback_models`-Kette abgewandert (siehe Konfiguration).
 
 ## Autonomie
 
