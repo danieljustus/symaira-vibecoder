@@ -5,7 +5,7 @@ editable cycle board on `127.0.0.1` and **drives opencode** (never forks it)
 through a swappable `Runner` interface to walk the cycle's phases/steps
 autonomously, with per-step model bindings and live status over SSE.
 
-- **License:** MIT (public core, like the other Symaira cores).
+- **License:** Apache-2.0 (public core, like the other Symaira cores).
 - **Standalone-first:** the board runs with no opencode installed (read-only,
   Run disabled). opencode is a *runtime peer*, detected on PATH — never a
   compile-time dependency on opencode internals.

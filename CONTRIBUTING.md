@@ -93,4 +93,4 @@ Please be respectful and constructive in all interactions. See [CODE_OF_CONDUCT.
 
 ## License
 
-By contributing to symvibe, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to symvibe, you agree that your contributions will be licensed under the [Apache-2.0 License](LICENSE).

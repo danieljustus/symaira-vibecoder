@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Repository governance** — CODEOWNERS and FUNDING.yml (#92)
 
+### Changed
+
+- **License metadata** — corrected README, AGENTS, CONTRIBUTING, and LICENSE to state Apache-2.0 consistently
+
 ### Fixed
 
 - **Homebrew formula path** — place GoReleaser Homebrew formula in `Formula/` directory

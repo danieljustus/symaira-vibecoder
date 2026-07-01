@@ -3,7 +3,7 @@
 [![CI](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml/badge.svg)](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/danieljustus/symaira-vibecoder)](https://github.com/danieljustus/symaira-vibecoder/releases)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/danieljustus/symaira-vibecoder)](https://go.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 > Eine schlanke grafische Oberfläche, die deinen **Cycle** (Cleaning → Code
 > Review → Planung → Coden → PR-Check → GH Alerts → Pre-Release → Release)
@@ -235,4 +235,4 @@ Der Client benötigt iOS 17 / macOS 14.
 
 ## Lizenz
 
-MIT — siehe [LICENSE](LICENSE).
+Apache-2.0 — siehe [LICENSE](LICENSE).
