@@ -38,6 +38,7 @@ brews:
       owner: danieljustus
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
     homepage: "https://github.com/danieljustus/symaira-vibecoder"
     description: "Graphical Vibe-Coding Baukasten that drives opencode"
     license: "MIT"
