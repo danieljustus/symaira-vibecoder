@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-07-01
+
+### Added
+
+- **Repository governance** — CODEOWNERS and FUNDING.yml (#92)
+
+### Fixed
+
+- **Homebrew formula path** — place GoReleaser Homebrew formula in `Formula/` directory
+- **Homebrew documentation** — align README with release tap and remove stale local formula (#93)
+
 ## [0.4.0] - 2026-06-29
 
 ### Added
@@ -97,7 +108,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.1.0...v0.2.0
