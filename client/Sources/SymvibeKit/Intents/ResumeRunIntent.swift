@@ -1,13 +1,15 @@
 import AppIntents
 
-struct ResumeRunIntent: AppIntent {
-    static let title: LocalizedStringResource = "Resume Run"
-    static let description = IntentDescription(
+public struct ResumeRunIntent: AppIntent {
+    public init() {}
+
+    public static let title: LocalizedStringResource = "Resume Run"
+    public static let description = IntentDescription(
         "Resumes the paused symvibe cycle run."
     )
-    static var isDiscoverable: Bool { true }
+    public static var isDiscoverable: Bool { true }
 
-    func perform() async throws -> some IntentResult {
+    public func perform() async throws -> some IntentResult {
         guard let client = WidgetShared.makeAPIClient() else {
             throw RunControlIntentError.notConnected
         }

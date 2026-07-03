@@ -1,13 +1,15 @@
 import AppIntents
 
-struct StartCycleIntent: AppIntent {
-    static let title: LocalizedStringResource = "Start Cycle"
-    static let description = IntentDescription(
+public struct StartCycleIntent: AppIntent {
+    public init() {}
+
+    public static let title: LocalizedStringResource = "Start Cycle"
+    public static let description = IntentDescription(
         "Starts the symvibe cycle run on the connected server."
     )
-    static var isDiscoverable: Bool { true }
+    public static var isDiscoverable: Bool { true }
 
-    func perform() async throws -> some IntentResult {
+    public func perform() async throws -> some IntentResult {
         guard let client = WidgetShared.makeAPIClient() else {
             throw StartCycleIntentError.notConnected
         }

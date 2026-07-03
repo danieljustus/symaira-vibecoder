@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SymairaToolKit
 
 /// Manages the embedded symvibe engine process on macOS.
 ///
@@ -191,24 +192,14 @@ public final class EngineManager {
     }
 
     private func locateBinary() -> URL? {
-        if let bundleURL = Bundle.main.url(forResource: "symvibe", withExtension: nil) {
-            return bundleURL
-        }
-
-        let bundleDir = Bundle.main.bundleURL.deletingLastPathComponent()
-        let devBinary = bundleDir.appendingPathComponent("symvibe")
-        if FileManager.default.fileExists(atPath: devBinary.path) {
-            return devBinary
-        }
-
+        // Shared discovery (bundle → exe dir → PATH → Homebrew prefixes);
+        // repo root (../symvibe) as extra fallback for dev runs.
         let projectRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let projectBinary = projectRoot.appendingPathComponent("symvibe")
-        if FileManager.default.fileExists(atPath: projectBinary.path) {
-            return projectBinary
-        }
-
-        return nil
+            .deletingLastPathComponent() // SymvibeApp/
+            .deletingLastPathComponent() // Sources/
+            .deletingLastPathComponent() // client/
+            .deletingLastPathComponent() // repo root
+        let locator = BinaryLocator(extraDirectories: ["/opt/homebrew/bin", "/usr/local/bin", projectRoot.path])
+        return locator.locate("symvibe")?.url
     }
 }
