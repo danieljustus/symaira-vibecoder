@@ -65,3 +65,19 @@ browser (embedded board)  ──REST + SSE──▶  internal/server (net/http +
 - `github.com/BurntSushi/toml` — config + cycle persistence.
 - **opencode** (runtime peer, not imported) — `opencode run --format json`,
   `--agent/--model/--variant`, skills under `~/.config/opencode/skills`.
+
+## symaira-appkit (Welle 4, Teiladoption)
+
+- The macOS app target (`client/`, target `Symvibe`) consumes
+  **symaira-appkit** pinned exact (`0.1.0`, `client/project.yml`):
+  SymairaToolKit for binary discovery in `SymvibeApp/EngineManager.swift`.
+  The engine supervision itself stays local (DaemonKit v0.2 candidate).
+- **iOS boundary:** symaira-appkit declares macOS only. Do NOT add appkit
+  products to the iOS targets or to SymvibeKit (iOS 17 + macOS 14) — the
+  local `KeychainHelper` in SymvibeKit stays until appkit ships iOS support.
+- **Known pre-existing breakage (NOT from the migration):** the `Symvibe`
+  macOS app target does not compile — `Views/BoardView.swift` and
+  `Views/PairingQRView.swift` have SwiftUI API errors committed unbuilt
+  (PR #24). SymvibeKit builds green; the migrated EngineManager was
+  type-checked in isolation against appkit. Fix the views separately.
+- SSE, TLS pinning, push, and the widget are untouched by design.

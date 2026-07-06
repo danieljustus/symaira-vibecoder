@@ -21,6 +21,7 @@
 		5CA1E097EA2100F8D4DDF5D9 /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
 		62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
+		6BA52B39DE4AB2625DB5EE84 /* SymairaToolKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2242569F326F581BA2863CCE /* SymairaToolKit */; };
 		75D24C89A21DD060D3AF5361 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */; };
 		7BFF0E88BC8F0A20DFD4F917 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F91E279CD9A5267D297D879 /* OnboardingView.swift */; };
 		81AAA63EEB9ED6D65A81579F /* SymvibeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0FB5072A8BBD742BCAD6E7 /* SymvibeWidget.swift */; };
@@ -90,6 +91,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				420DBE86D292AA3BB817BF4A /* SymvibeKit in Frameworks */,
+				6BA52B39DE4AB2625DB5EE84 /* SymairaToolKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +218,7 @@
 			name = Symvibe;
 			packageProductDependencies = (
 				6B76F6187E8B88B33A558743 /* SymvibeKit */,
+				2242569F326F581BA2863CCE /* SymairaToolKit */,
 			);
 			productName = Symvibe;
 			productReference = B3047F873C59E29238A29C1E /* Symvibe.app */;
@@ -272,6 +275,7 @@
 			mainGroup = B2F33B65A4727A4F22F4A473;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				A9AA20E44D345558B04834A8 /* XCRemoteSwiftPackageReference "symaira-appkit" */,
 				745F9B3570F0A928E426407E /* XCLocalSwiftPackageReference "." */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -649,7 +653,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		A9AA20E44D345558B04834A8 /* XCRemoteSwiftPackageReference "symaira-appkit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danieljustus/symaira-appkit";
+			requirement = {
+				kind = exactVersion;
+				version = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		2242569F326F581BA2863CCE /* SymairaToolKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9AA20E44D345558B04834A8 /* XCRemoteSwiftPackageReference "symaira-appkit" */;
+			productName = SymairaToolKit;
+		};
 		6B76F6187E8B88B33A558743 /* SymvibeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SymvibeKit;

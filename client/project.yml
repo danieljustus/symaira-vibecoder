@@ -17,6 +17,11 @@ settings:
 packages:
   SymvibeClient:
     path: .
+  # macOS-only (appkit declares no iOS platform yet); do NOT add appkit
+  # products to the iOS targets.
+  SymairaAppKit:
+    url: https://github.com/danieljustus/symaira-appkit
+    exactVersion: 0.1.0
 
 targets:
   Symvibe:
@@ -41,6 +46,8 @@ targets:
     dependencies:
       - package: SymvibeClient
         product: SymvibeKit
+      - package: SymairaAppKit
+        product: SymairaToolKit
     postBuildScripts:
       - name: Embed symvibe Engine
         script: |
