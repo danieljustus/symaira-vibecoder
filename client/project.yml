@@ -21,7 +21,7 @@ packages:
   # products to the iOS targets.
   SymairaAppKit:
     url: https://github.com/danieljustus/symaira-appkit
-    exactVersion: 0.1.0
+    exactVersion: 0.2.0
 
 targets:
   Symvibe:
