@@ -23,3 +23,14 @@ coverage.*
 .env.*
 *.local
 .cache/
+
+# Local agent reports / session state
+.github/coverage/
+.github/prerelease/
+.github/review/
+.github/audit/
+.omo/run-continuation/
+.omo/notepads/
+coverage.html
+# Generated Xcode workspace resolved state
+client/Symvibe.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
