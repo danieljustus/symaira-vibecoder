@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-07-10
+
+### Added
+
+- **Recipe runner API** — `POST /api/recipe/run` accepts a versioned `RecipeRequest`, executes a prompt through the configured runner backend, and returns a `RecipeResult` with a replayable trace, proposed diff, and optional review mode that restores the workspace after the run (#99)
+- **Recipe write-capability levels** — `none`, `workspace`, `full` caps plus optional `tool_allow_list` and `trace_path` constraints for recipe runs
+
+### Changed
+
+- **macOS client migrated to symaira-appkit** — `EngineManager` uses `SymairaToolKit` for bundled binary discovery and `KeychainHelper` delegates to `SymairaKeychain` (#97, #96)
 
 ## [0.4.1] - 2026-07-01
 
@@ -112,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.2.0...v0.3.0
