@@ -82,6 +82,9 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/run/step", s.runStep)
 	m.HandleFunc("POST /api/run/control", s.runControl)
 
+	// Recipe runner (vault automation).
+	m.HandleFunc("POST /api/recipe/run", s.recipeRun)
+
 	// Pairing and device management.
 	m.HandleFunc("POST /api/pair/start", s.pairStart)
 	m.HandleFunc("POST /api/pair/complete", s.pairComplete)
