@@ -97,8 +97,27 @@ func TestValidate(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "valid request with defaults",
-			req:  RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "/tmp"},
+			name:    "workspace not absolute",
+			req:     RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "relative/path"},
+			wantErr: ErrInvalidWorkspace,
+		},
+		{
+			name:    "trace path with traversal",
+			req:     RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "/tmp", TracePath: "../trace.json"},
+			wantErr: ErrInvalidTracePath,
+		},
+		{
+			name:    "absolute trace path rejected",
+			req:     RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "/tmp", TracePath: "/tmp/trace.json"},
+			wantErr: ErrInvalidTracePath,
+		},
+		{
+			name: "valid relative trace path",
+			req:  RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "/tmp", TracePath: "trace.json"},
+		},
+		{
+			name: "valid nested relative trace path",
+			req:  RecipeRequest{SchemaVersion: "1", Prompt: "x", Workspace: "/tmp", TracePath: "logs/trace.json"},
 		},
 	}
 

@@ -7,6 +7,7 @@
 package recipe
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/runner"
@@ -74,8 +75,14 @@ func (r *RecipeRequest) Validate() error {
 	if r.Workspace == "" {
 		return ErrMissingWorkspace
 	}
+	if !filepath.IsAbs(r.Workspace) {
+		return ErrInvalidWorkspace
+	}
 	if r.WriteCap == "" {
 		r.WriteCap = WriteCapWorkspace
+	}
+	if r.TracePath != "" && !filepath.IsLocal(r.TracePath) {
+		return ErrInvalidTracePath
 	}
 	return nil
 }

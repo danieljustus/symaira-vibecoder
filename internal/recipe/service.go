@@ -21,6 +21,8 @@ var (
 	ErrInvalidSchema      = errors.New("recipe: unsupported schema_version (want \"1\")")
 	ErrMissingPrompt      = errors.New("recipe: prompt is required")
 	ErrMissingWorkspace   = errors.New("recipe: workspace is required")
+	ErrInvalidWorkspace   = errors.New("recipe: workspace must be an absolute path")
+	ErrInvalidTracePath   = errors.New("recipe: trace_path must be a relative path without '..' components")
 	ErrBackendUnavailable = errors.New("recipe: runner backend unavailable")
 )
 
@@ -120,10 +122,11 @@ func (s *Service) Run(ctx context.Context, req RecipeRequest) (*RecipeResult, er
 
 	// Write trace to file if path configured.
 	if req.TracePath != "" {
-		if err := writeTrace(req.TracePath, trace); err != nil {
-			slog.Warn("recipe: failed to write trace", "path", req.TracePath, "err", err)
+		tracePath := filepath.Join(req.Workspace, req.TracePath)
+		if err := writeTrace(tracePath, trace); err != nil {
+			slog.Warn("recipe: failed to write trace", "path", tracePath, "err", err)
 		} else {
-			result.TracePath = req.TracePath
+			result.TracePath = tracePath
 		}
 	}
 
