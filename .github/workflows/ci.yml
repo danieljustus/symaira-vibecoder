@@ -56,3 +56,18 @@ jobs:
 
       - name: smoke
         run: ./symvibe version
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.x"
+          cache: true
+
+      - name: coverage
+        run: .github/scripts/check-coverage.sh
