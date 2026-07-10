@@ -49,6 +49,11 @@ test:
 test-race:
 	CGO_ENABLED=1 go test -race ./internal/...
 
+## coverage: run tests with coverage and enforce the repo threshold
+.PHONY: coverage
+coverage:
+	.github/scripts/check-coverage.sh
+
 ## lint: gofmt + vet
 .PHONY: lint
 lint:
