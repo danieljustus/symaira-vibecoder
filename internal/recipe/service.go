@@ -122,11 +122,10 @@ func (s *Service) Run(ctx context.Context, req RecipeRequest) (*RecipeResult, er
 
 	// Write trace to file if path configured.
 	if req.TracePath != "" {
-		tracePath := filepath.Join(req.Workspace, req.TracePath)
-		if err := writeTrace(tracePath, trace); err != nil {
-			slog.Warn("recipe: failed to write trace", "path", tracePath, "err", err)
+		if err := writeTrace(req.Workspace, req.TracePath, trace); err != nil {
+			slog.Warn("recipe: failed to write trace", "workspace", req.Workspace, "path", req.TracePath, "err", err)
 		} else {
-			result.TracePath = tracePath
+			result.TracePath = filepath.Join(req.Workspace, req.TracePath)
 		}
 	}
 
@@ -204,9 +203,26 @@ func collectTrace(ctx context.Context, ch <-chan runner.RunEvent) []runner.RunEv
 	}
 }
 
-// writeTrace serializes the trace to a JSON file at the given path. Parent
-// directories are created as needed.
-func writeTrace(path string, trace []runner.RunEvent) error {
+// writeTrace serializes the trace to a JSON file at the given path relative to
+// the workspace. Parent directories are created as needed. The tracePath is
+// validated as a local relative path before any file operation.
+func writeTrace(workspace, tracePath string, trace []runner.RunEvent) error {
+	if !filepath.IsLocal(tracePath) {
+		return fmt.Errorf("trace path is not local relative: %q", tracePath)
+	}
+	path := filepath.Join(workspace, tracePath)
+	// Defense in depth: ensure the resolved path stays inside the workspace.
+	absWorkspace, err := filepath.Abs(workspace)
+	if err != nil {
+		return fmt.Errorf("abs workspace: %w", err)
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("abs trace path: %w", err)
+	}
+	if !strings.HasPrefix(absPath, absWorkspace+string(filepath.Separator)) {
+		return fmt.Errorf("trace path escapes workspace: %q", tracePath)
+	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}

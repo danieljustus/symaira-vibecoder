@@ -3,6 +3,8 @@ package recipe
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -349,6 +351,34 @@ func TestCollectTraceContextCancelled(t *testing.T) {
 	if len(trace) != 0 {
 		t.Errorf("collectTrace with cancelled ctx returned %d events, want 0", len(trace))
 	}
+}
+
+func TestWriteTrace(t *testing.T) {
+	workspace := t.TempDir()
+	trace := []runner.RunEvent{
+		{Kind: runner.EventDone, Text: "completed"},
+	}
+
+	t.Run("writes local relative path", func(t *testing.T) {
+		if err := writeTrace(workspace, "trace.json", trace); err != nil {
+			t.Fatalf("writeTrace() error = %v", err)
+		}
+		if _, err := os.Stat(filepath.Join(workspace, "trace.json")); err != nil {
+			t.Errorf("trace file not created: %v", err)
+		}
+	})
+
+	t.Run("rejects path traversal", func(t *testing.T) {
+		if err := writeTrace(workspace, "../trace.json", trace); err == nil {
+			t.Error("writeTrace() should reject path traversal")
+		}
+	})
+
+	t.Run("rejects absolute path", func(t *testing.T) {
+		if err := writeTrace(workspace, "/tmp/trace.json", trace); err == nil {
+			t.Error("writeTrace() should reject absolute path")
+		}
+	})
 }
 
 func TestProposedDiff(t *testing.T) {
