@@ -128,7 +128,7 @@ func serveCmd() *cobra.Command {
 				if ok, info := run.Available(ctx); ok {
 					slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
 				} else {
-					slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+					slog.Warn("opencode not found — board runs read-only (Run disabled)")
 				}
 				if err := httpSrv.ServeTLS(ln, pair.CertPath, pair.KeyPath); err != nil && err != http.ErrServerClosed {
 					return err
@@ -142,7 +142,7 @@ func serveCmd() *cobra.Command {
 				if ok, info := run.Available(ctx); ok {
 					slog.Info("opencode backend ready", "version", info.Version, "path", info.Path)
 				} else {
-					slog.Warn("opencode not found — board runs read-only (Run disabled)", "detail", info.Detail)
+					slog.Warn("opencode not found — board runs read-only (Run disabled)")
 				}
 				if err := httpSrv.Serve(ln); err != nil && err != http.ErrServerClosed {
 					return err
