@@ -205,13 +205,13 @@ func collectTrace(ctx context.Context, ch <-chan runner.RunEvent) []runner.RunEv
 
 // writeTrace serializes the trace to a JSON file at the given path relative to
 // the workspace. Parent directories are created as needed. The tracePath is
-// validated as a local relative path before any file operation.
+// validated as a local relative path confined to the workspace before any file
+// operation.
 func writeTrace(workspace, tracePath string, trace []runner.RunEvent) error {
-	if !filepath.IsLocal(tracePath) {
+	if strings.Contains(tracePath, "..") || filepath.IsAbs(tracePath) {
 		return fmt.Errorf("trace path is not local relative: %q", tracePath)
 	}
 	path := filepath.Join(workspace, tracePath)
-	// Defense in depth: ensure the resolved path stays inside the workspace.
 	absWorkspace, err := filepath.Abs(workspace)
 	if err != nil {
 		return fmt.Errorf("abs workspace: %w", err)
@@ -223,12 +223,12 @@ func writeTrace(workspace, tracePath string, trace []runner.RunEvent) error {
 	if !strings.HasPrefix(absPath, absWorkspace+string(filepath.Separator)) {
 		return fmt.Errorf("trace path escapes workspace: %q", tracePath)
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
 	data, err := json.MarshalIndent(trace, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
 	}
-	return os.WriteFile(path, data, 0o644)
+	return os.WriteFile(absPath, data, 0o644)
 }
