@@ -42,6 +42,7 @@ graph LR
 - **Model bindings per category/step** — assign different AI models to different parts of your cycle
 - **Autonomous cycle execution** — run your entire workflow with a single click
 - **iOS/macOS client** — native SwiftUI client for monitoring and controlling cycles
+- **Recipe runner API** — versioned `POST /api/recipe/run` endpoint for MCP callers and vault workflows, with review mode and workspace diff capture
 
 ```
   symvibe serve  →  http://127.0.0.1:4317
@@ -222,8 +223,15 @@ eingebettetes Board (`web/`). Siehe [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## iOS / macOS-Client
 
-Ein SwiftPM-Skelett liegt unter `client/`. `SymvibeKit` enthält REST-Client,
+Ein SwiftPM-Projekt liegt unter `client/`. `SymvibeKit` enthält REST-Client,
 SSE-Parser, TLS-Pinning und `Codable`-Modelle, die 1:1 den Go-Typen folgen.
+
+Der macOS-Client (`SymvibeApp`) setzt auf **symaira-appkit** auf und nutzt:
+
+- `SymairaToolKit` zum Auffinden des gebündelten `symvibe`-Binärs in
+  `Contents/Resources` oder auf dem Entwicklungs-`PATH` (`EngineManager`).
+- `SymairaKeychain` zum sicheren Speichern von Geräte-Pairing-Tokens
+  (`KeychainHelper`).
 
 ```bash
 cd client
@@ -232,6 +240,23 @@ swift build                # macOS
 ```
 
 Der Client benötigt iOS 17 / macOS 14.
+
+## Rezept-Runner (Recipe API)
+
+Neben dem interaktiven Board stellt symvibe einen **versionierten Rezept-Runner**
+über `POST /api/recipe/run` bereit. Ein Rezept (`RecipeRequest`) beschreibt:
+
+- `workspace` — absoluter Pfad zum Git-Repository
+- `prompt` — Anweisung, die an das konfigurierte Runner-Backend geschickt wird
+- `write_cap` — maximal erlaubte Schreibweite: `none`, `workspace` oder `full`
+- `tool_allow_list` — optional eingeschränkte Tool-Namen
+- `trace_path` — optionaler relativer Pfad für einen replaybaren Trace
+- `review_mode` — wenn `true`, wird der Workspace nach dem Lauf auf den
+  Ausgangszustand zurückgesetzt, nachdem ein vorgeschlagener Diff erfasst wurde
+
+Die Antwort (`RecipeResult`) enthält Status, Dauer, Backend, Trace und den
+vorgeschlagenen Diff. Das Endpoint ist für Automation / MCP-Caller gedacht,
+beispielsweise um Vault-Workflows oder wiederholbare Codierungstasks auszuführen.
 
 ## Lizenz
 
