@@ -191,7 +191,7 @@ struct PairingQRView: View {
         }
 
         #if os(macOS)
-        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: scaledImage.extent.width, y: scaledImage.extent.height))
+        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: scaledImage.extent.width, height: scaledImage.extent.height))
         return Image(nsImage: nsImage)
         #else
         let uiImage = UIImage(cgImage: cgImage)

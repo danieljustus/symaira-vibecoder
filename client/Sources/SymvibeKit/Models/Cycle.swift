@@ -41,6 +41,11 @@ public enum StepStatus: String, Codable, Sendable, CaseIterable {
 public struct AutoSkip: Codable, Sendable, Equatable {
     public let sensor: String
     public let when: String
+
+    public init(sensor: String, when: String) {
+        self.sensor = sensor
+        self.when = when
+    }
 }
 
 public struct StepModelOverride: Codable, Sendable, Equatable {
@@ -48,6 +53,13 @@ public struct StepModelOverride: Codable, Sendable, Equatable {
     public let temperature: Double?
     public let variant: String?
     public let fallbackModels: [String]?
+
+    public init(id: String, temperature: Double? = nil, variant: String? = nil, fallbackModels: [String]? = nil) {
+        self.id = id
+        self.temperature = temperature
+        self.variant = variant
+        self.fallbackModels = fallbackModels
+    }
 }
 
 public struct Step: Codable, Sendable, Identifiable, Equatable {
@@ -64,6 +76,22 @@ public struct Step: Codable, Sendable, Identifiable, Equatable {
     public let dependsOn: [String]?
     public let parallelSafe: Bool?
     public var status: StepStatus
+
+    public init(id: String, name: String, order: Int, skill: String, category: String, agent: String? = nil, promptSuffix: String? = nil, enabled: Bool = true, modelOverride: StepModelOverride? = nil, autoSkip: AutoSkip? = nil, dependsOn: [String]? = nil, parallelSafe: Bool? = nil, status: StepStatus = .pending) {
+        self.id = id
+        self.name = name
+        self.order = order
+        self.skill = skill
+        self.category = category
+        self.agent = agent
+        self.promptSuffix = promptSuffix
+        self.enabled = enabled
+        self.modelOverride = modelOverride
+        self.autoSkip = autoSkip
+        self.dependsOn = dependsOn
+        self.parallelSafe = parallelSafe
+        self.status = status
+    }
 }
 
 public struct Phase: Codable, Sendable, Identifiable, Equatable {
@@ -71,6 +99,13 @@ public struct Phase: Codable, Sendable, Identifiable, Equatable {
     public let name: String
     public let order: Int
     public var steps: [Step]
+
+    public init(id: String, name: String, order: Int, steps: [Step]) {
+        self.id = id
+        self.name = name
+        self.order = order
+        self.steps = steps
+    }
 }
 
 public struct Cycle: Codable, Sendable, Identifiable, Equatable {
@@ -79,4 +114,12 @@ public struct Cycle: Codable, Sendable, Identifiable, Equatable {
     public let name: String
     public let description: String
     public var phases: [Phase]
+
+    public init(schemaVersion: Int, id: String, name: String, description: String, phases: [Phase]) {
+        self.schemaVersion = schemaVersion
+        self.id = id
+        self.name = name
+        self.description = description
+        self.phases = phases
+    }
 }
