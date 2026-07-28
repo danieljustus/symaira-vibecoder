@@ -24,6 +24,11 @@ var (
 	ErrInvalidWorkspace   = errors.New("recipe: workspace must be an absolute path")
 	ErrInvalidTracePath   = errors.New("recipe: trace_path must be a relative path without '..' components")
 	ErrBackendUnavailable = errors.New("recipe: runner backend unavailable")
+	// ErrUnsafeReviewWorkspace is returned when review_mode is requested but the
+	// workspace contains pre-existing untracked files. The review-mode restore
+	// cannot preserve them (the pre-run snapshot only covers tracked files), so
+	// the run is refused instead of silently deleting them via `git clean -fd`.
+	ErrUnsafeReviewWorkspace = errors.New("recipe: review_mode refused: workspace has pre-existing untracked files that restore cannot preserve")
 )
 
 // Service executes recipes against a runner.Runner. It is safe for concurrent
@@ -53,6 +58,19 @@ func (s *Service) Run(ctx context.Context, req RecipeRequest) (*RecipeResult, er
 
 	runID := "recipe_" + time.Now().Format("20060102-150405.000000000")
 	start := time.Now()
+
+	// Review-mode guard: the post-run restore resets tracked files to HEAD and
+	// runs `git clean -fd`, which would irrecoverably delete any pre-existing
+	// untracked files (the pre-run snapshot only covers tracked changes).
+	// Refuse the run instead of destroying caller data.
+	if req.ReviewMode {
+		untracked, err := listUntracked(ctx, req.Workspace)
+		if err == nil && len(untracked) > 0 {
+			return nil, fmt.Errorf("%w (%d file(s), first: %q)", ErrUnsafeReviewWorkspace, len(untracked), untracked[0])
+		}
+		// err != nil means the workspace is not a git repository; the restore
+		// will fail and the failure is reported via RestoreStatus.
+	}
 
 	result := &RecipeResult{
 		RunID:         runID,
@@ -116,8 +134,14 @@ func (s *Service) Run(ctx context.Context, req RecipeRequest) (*RecipeResult, er
 
 	// Review mode: restore workspace to pre-run state.
 	if req.ReviewMode {
-		restoreWorkspace(ctx, req.Workspace, preDiff)
-		slog.Info("recipe review mode: workspace restored", "run_id", runID)
+		if err := restoreWorkspace(ctx, req.Workspace, preDiff); err != nil {
+			result.RestoreStatus = "failed"
+			result.RestoreError = err.Error()
+			slog.Warn("recipe review mode: workspace restore failed", "run_id", runID, "err", err)
+		} else {
+			result.RestoreStatus = "ok"
+			slog.Info("recipe review mode: workspace restored", "run_id", runID)
+		}
 	}
 
 	// Write trace to file if path configured.
@@ -166,25 +190,55 @@ func proposedDiff(pre, post string) string {
 
 // restoreWorkspace restores the workspace to its pre-run state. It resets
 // tracked files to HEAD and removes untracked files, then reapplies the
-// pre-diff if there were pre-existing uncommitted changes.
-func restoreWorkspace(ctx context.Context, workspace string, preDiff string) {
+// pre-diff if there were pre-existing uncommitted changes. Command errors are
+// collected and returned so the caller can report restore success/failure
+// instead of silently assuming success.
+func restoreWorkspace(ctx context.Context, workspace string, preDiff string) error {
+	var errs []error
+
 	// Reset tracked files to HEAD.
 	cmd := exec.CommandContext(ctx, "git", "checkout", "HEAD", "--", ".")
 	cmd.Dir = workspace
-	_ = cmd.Run()
+	if err := cmd.Run(); err != nil {
+		errs = append(errs, fmt.Errorf("git checkout HEAD -- .: %w", err))
+	}
 
 	// Remove untracked files and directories.
 	cmd = exec.CommandContext(ctx, "git", "clean", "-fd")
 	cmd.Dir = workspace
-	_ = cmd.Run()
+	if err := cmd.Run(); err != nil {
+		errs = append(errs, fmt.Errorf("git clean -fd: %w", err))
+	}
 
 	// Reapply pre-existing uncommitted changes, if any.
 	if preDiff != "" {
 		cmd = exec.CommandContext(ctx, "git", "apply", "-")
 		cmd.Dir = workspace
 		cmd.Stdin = strings.NewReader(preDiff)
-		_ = cmd.Run()
+		if err := cmd.Run(); err != nil {
+			errs = append(errs, fmt.Errorf("git apply (pre-run diff): %w", err))
+		}
 	}
+
+	return errors.Join(errs...)
+}
+
+// listUntracked returns the untracked, non-ignored files in the workspace.
+// It returns an error when the workspace is not a git repository.
+func listUntracked(ctx context.Context, workspace string) ([]string, error) {
+	cmd := exec.CommandContext(ctx, "git", "ls-files", "--others", "--exclude-standard")
+	cmd.Dir = workspace
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git ls-files: %w", err)
+	}
+	var files []string
+	for line := range strings.Lines(string(out)) {
+		if line != "" {
+			files = append(files, line)
+		}
+	}
+	return files, nil
 }
 
 // collectTrace drains the runner event channel into a slice.
