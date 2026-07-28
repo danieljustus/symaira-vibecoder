@@ -105,8 +105,53 @@ won (`Source`) for the GUI. `BuildRunSpec` materializes the primary attempt onto
   streaming, `/abort` cancel, child-session→subagent correlation.
 - Intra-phase parallelism for `parallel_safe` review steps (cap from
   `max_parallel_subagents`).
-- SQLite `RunState` for cross-execution history / audit.
+- SQLite `RunState` for cross-execution history / audit — with a decided
+  schema, see **RunState: structured learnings, not just a log** below.
 - `needs_review` halt + an explicit human-ack affordance for high-risk steps
   (release, force-merge).
 - A richer React/Vite board under `web/` (replaces the embedded vanilla board via
   `make web`).
+
+## RunState: structured learnings, not just a log
+
+*Design decision (issue #111, 2026-07-28), adopted from `google/mantis`'s
+`mantis-reflect` → `learnings.jsonl` pattern. Decision only — no code yet.*
+
+When `RunState` ships, it stores **two shapes per run**, not one:
+
+1. **Run log (raw, append-only).** What already flows over the bus today:
+   normalized `RunEvent`s, timestamps, final status. Kept verbatim for audit
+   and replay; never the primary query surface.
+2. **Learnings (structured, one record per failed/needs_review step).** A
+   queryable row — *not* free text — capturing *why* the step ended that way:
+
+   | Field | Content |
+   |---|---|
+   | `cycle_id`, `step_id`, `category` | which step, which model category |
+   | `run_id`, `attempt`, `model` | the concrete attempt that produced this outcome |
+   | `outcome` | `failed` \| `needs_review` |
+   | `sensor_value` | the `auto_skip` sensor reading at run time, if the step has one (`null` otherwise) |
+   | `error_class` | coarse backend error class from a small fixed enum (e.g. `provider_rate_limit`, `provider_timeout`, `auth`, `context_overflow`, `tool_failure`, `unknown`) — classified by the engine from the runner's terminal error, never the raw message |
+   | `human_correction` | what a human changed to unblock it (`null`, `edited_step`, `changed_model`, `reset_and_rerun`, `manual_done`) |
+   | `occurred_at` | timestamp |
+
+   Free-text error detail stays in the run log and is linked by `run_id`;
+   the learnings row holds only enum/typed fields so it is cheap to aggregate.
+
+### How future stages consult it (concrete examples)
+
+- **Fallback chain, informed by history.** Today `Resolver` walks
+  `fallback_models` only after a live failure. With learnings, when a category
+  has ≥2 recent rows with the same `error_class` (e.g. `provider_rate_limit`),
+  the Resolver can *start* the run on the first fallback model instead of
+  burning an attempt on the known-failing primary.
+- **Repeated-failure surfacing.** `NextRunnable` already halts at a failed
+  step. With learnings the halt message (and later the board) can say *"step
+  2.3 failed twice with `tool_failure` — same error class across attempts"*,
+  so the human sees a pattern, not an isolated error.
+- **Sensor calibration.** Rows carrying `sensor_value` + `outcome` show whether
+  an `auto_skip` threshold is misfiring (e.g. steps repeatedly failing right
+  after a sensor read `>=3`), feeding a future tuning pass.
+
+What this explicitly is **not**: a UI feature (surfacing is follow-up work),
+and not an implementation commitment beyond the schema above.
