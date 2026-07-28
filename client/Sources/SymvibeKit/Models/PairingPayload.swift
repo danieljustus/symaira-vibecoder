@@ -52,16 +52,27 @@ public struct PairingPayload: Sendable, Equatable {
     public let certFingerprint: String
     public let pairingCode: String
 
+    /// HTTPS base URL for a chosen host candidate (engine serves TLS, see TLSPinningDelegate).
+    public func baseURL(for host: String) -> URL? {
+        URL(string: "https://\(host):\(port)")
+    }
+
     /// Parse a `symvibe://pair?…` URI string.
     public static func parse(_ urlString: String) throws -> PairingPayload {
         guard let url = URL(string: urlString),
               url.scheme == "symvibe",
-              url.path == "/pair" else {
+              url.host == "pair" else {
             throw PairingError.invalidPayload("Not a symvibe://pair URL")
         }
 
-        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-            .queryItems ?? []
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        // Form-encoding: "+" means space. Rewrite on the percent-encoded query so
+        // an escaped "%2B" still decodes to a literal "+".
+        if let encodedQuery = components?.percentEncodedQuery {
+            components?.percentEncodedQuery = encodedQuery
+                .replacingOccurrences(of: "+", with: "%20")
+        }
+        let items = components?.queryItems ?? []
 
         var hosts: [String] = []
         var name = "Mac"

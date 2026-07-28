@@ -21,8 +21,8 @@ make run          # build + symvibe serve (opens the board)
 ./symvibe doctor  # check opencode/git/gh availability and config sanity
 ```
 
-Go 1.26.x, **CGO-free** (`CGO_ENABLED=0`); only deps are `BurntSushi/toml` and
-`spf13/cobra`. The web board is embedded via `go:embed all:dist`; the committed
+Go 1.26.x, **CGO-free** (`CGO_ENABLED=0`); direct deps are `BurntSushi/toml`,
+`spf13/cobra`, and `hashicorp/mdns` (LAN discovery). The web board is embedded via `go:embed all:dist`; the committed
 `web/dist/index.html` is a dependency-free board, so `go build` never needs Node.
 
 ## Architecture & Key Competencies
@@ -63,21 +63,39 @@ browser (embedded board)  ──REST + SSE──▶  internal/server (net/http +
 
 - `github.com/spf13/cobra` — CLI.
 - `github.com/BurntSushi/toml` — config + cycle persistence.
+- `github.com/hashicorp/mdns` — LAN service discovery/advertisement.
 - **opencode** (runtime peer, not imported) — `opencode run --format json`,
   `--agent/--model/--variant`, skills under `~/.config/opencode/skills`.
 
 ## symaira-appkit (Welle 4, Teiladoption)
 
 - The macOS app target (`client/`, target `Symvibe`) consumes
-  **symaira-appkit** pinned exact (`0.1.0`, `client/project.yml`):
+  **symaira-appkit** pinned exact (`0.2.0`, `client/project.yml`):
   SymairaToolKit for binary discovery in `SymvibeApp/EngineManager.swift`.
   The engine supervision itself stays local (DaemonKit v0.2 candidate).
 - **iOS boundary:** symaira-appkit declares macOS only. Do NOT add appkit
   products to the iOS targets or to SymvibeKit (iOS 17 + macOS 14) — the
   local `KeychainHelper` in SymvibeKit stays until appkit ships iOS support.
-- **Known pre-existing breakage (NOT from the migration):** the `Symvibe`
-  macOS app target does not compile — `Views/BoardView.swift` and
-  `Views/PairingQRView.swift` have SwiftUI API errors committed unbuilt
-  (PR #24). SymvibeKit builds green; the migrated EngineManager was
-  type-checked in isolation against appkit. Fix the views separately.
+- **App target builds green (fixed 2026-07-28):** the former pre-existing
+  breakage in `Views/BoardView.swift` / `Views/PairingQRView.swift` /
+  `Views/StepEditorView.swift` (committed unbuilt in PR #24) is repaired:
+  cross-platform `Color.cardSeparator`/`Color.cardBackground` helpers replace
+  the ambiguous `Color(.separator)`/`Color(.background)` (resolved to SwiftUI
+  shape styles, not system colors), `NSSize(width:y:)` became
+  `NSSize(width:height:)`, and `.navigationBarTitleDisplayMode` is iOS-only
+  now. SymvibeKit models (`Cycle`, `Phase`, `Step`, `StepModelOverride`,
+  `AutoSkip`) got explicit `public init`s so the app target can construct
+  them across the module boundary. `PairingPayload.parse` was fixed for
+  custom-scheme URLs (`url.host == "pair"`, not `url.path`) plus
+  form-encoding (`+` → space) and gained `baseURL(for:)`.
+  `Sources/SymvibeApp/Info.plist` now contains the full CFBundle key set as
+  build variables — before, the processed bundle plist lacked
+  CFBundleExecutable/-Identifier/-Version. `swift test`: 44/44 green.
+- **Local build:** `make build` (embeds `symvibe` into the app), then
+  `cd client && xcodegen generate` and
+  `DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -project Symvibe.xcodeproj -scheme Symvibe -configuration Release -derivedDataPath build`.
+  The CommandLineTools-only toolchain cannot run XCTest; use the same
+  `DEVELOPER_DIR` for `swift test`. Result: adhoc-signed
+  `build/Build/Products/Release/Symvibe.app` (installed at
+  `/Applications/Symvibe.app`).
 - SSE, TLS pinning, push, and the widget are untouched by design.

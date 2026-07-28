@@ -66,7 +66,9 @@ struct StepEditorView: View {
                 }
             }
             .navigationTitle("Edit Step")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

@@ -1,6 +1,27 @@
 import SwiftUI
 import SymvibeKit
 
+private extension Color {
+    /// Cross-platform separator color (`.separator` alone resolves to the
+    /// SwiftUI `SeparatorShapeStyle` instead of the system color).
+    static var cardSeparator: Color {
+        #if os(macOS)
+        Color(nsColor: .separatorColor)
+        #else
+        Color(uiColor: .separator)
+        #endif
+    }
+
+    /// Cross-platform card background color.
+    static var cardBackground: Color {
+        #if os(macOS)
+        Color(nsColor: .controlBackgroundColor)
+        #else
+        Color(uiColor: .systemBackground)
+        #endif
+    }
+}
+
 struct BoardView: View {
     let store: BoardStore
     let activityStore: ActivityStore
@@ -153,7 +174,7 @@ private struct BoardContent: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(Color(.separator), lineWidth: 0.5)
+                            .strokeBorder(Color.cardSeparator, lineWidth: 0.5)
                     )
             }
         }
@@ -297,7 +318,7 @@ private struct StepCard: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(isCurrentStep ? Color.blue.opacity(0.04) : Color(.background))
+        .background(isCurrentStep ? Color.blue.opacity(0.04) : Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
@@ -305,8 +326,8 @@ private struct StepCard: View {
                     isCurrentStep
                         ? Color.blue.opacity(0.3)
                         : step.enabled
-                            ? Color(.separator)
-                            : Color(.separator).opacity(0.4),
+                            ? Color.cardSeparator
+                            : Color.cardSeparator.opacity(0.4),
                     lineWidth: isCurrentStep ? 1.5 : 0.5
                 )
         )

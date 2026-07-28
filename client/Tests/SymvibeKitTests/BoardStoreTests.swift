@@ -108,7 +108,7 @@ final class BoardStoreTests: XCTestCase {
     func testRunStateUpdate() async {
         let store = makeStore()
 
-        let event = Event(type: "run_state", state: "running", runID: "run-1", stepID: "step-1")
+        let event = Event(type: "run_state", runID: "run-1", stepID: "step-1", state: "running")
         await store.handleEvent(event)
 
         XCTAssertEqual(store.runState?.state, "running")
