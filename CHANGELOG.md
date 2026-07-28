@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-28
+
+### Added
+
+- **macOS GUI app** — the native `Symvibe.app` target (macOS 14+) now compiles, builds, and runs. Includes an AppIcon, cross-platform color fixes, public model initialisers across the module boundary, and a complete `Info.plist` (#106)
+- **GUI release CI** — `release.yml` now includes a `macos-gui-dmg` job that builds a universal `symvibe` fat binary, generates the Xcode project, codesigns and notarizes the app, packages a DMG, and uploads it as a release asset (#107)
+- **Homebrew Cask distribution** — a `bump-homebrew-cask` job pushes `Casks/symvibe.rb` to the Homebrew tap after every release (#108)
+
+### Changed
+
+- Bump `actions/setup-go` from v6 to v7 in CI workflows (#105)
+- Raise minimum coverage threshold to 58% and add focused tests for the baseline (#104)
+
+### Fixed
+
+- `PairingPayload.parse` now correctly handles custom `symvibe://pair` URLs (host-based check, not path-based) and form-encoded `+` → space in query parameters (#106)
+- `symvibe pair` command documented in README (#107)
+
 ## [0.5.0] - 2026-07-10
 
 ### Added
@@ -121,7 +139,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.3.0...v0.4.0
