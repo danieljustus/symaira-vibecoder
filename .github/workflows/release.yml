@@ -190,7 +190,9 @@ jobs:
             xcodebuild -project Symvibe.xcodeproj \
               -scheme Symvibe \
               -configuration Release \
-              -derivedDataPath build
+              -derivedDataPath build \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO
           fi
           APP_BUNDLE=$(find build -name 'Symvibe.app' -type d -maxdepth 6 | head -1)
           if [ -z "$APP_BUNDLE" ]; then
