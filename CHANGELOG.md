@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-28
+
+### Added
+
+- **Declarative per-step review gate** — a new `requires_review = { when = "category == release" }` step rule (mirroring `auto_skip`) automatically moves a matching step to `needs_review` on completion, halting the autonomous walk until a human ack flips it back to `done`. Closes the roadmap item for high-risk steps (#110, #113)
+- **RunState schema decision** — `docs/ARCHITECTURE.md` now specifies the planned run-history store as structured learnings (sensor value, error class, human correction) alongside the raw run log, with concrete consultation examples (#111, #112)
+
+### Fixed
+
+- **Recipe review_mode no longer destroys untracked files** — review-mode runs are refused when the workspace contains pre-existing untracked files (previously silently deleted by `git clean -fd`), and restore success/failure is now reported on `RecipeResult` (`restore_status`/`restore_error`) instead of being swallowed (#109, #114)
+
+### Changed
+
+- CI now runs a fast PR gate (lint + ubuntu tests on PRs) with the full suite on main and a weekly schedule (ca6ee18)
+
 ## [0.6.0] - 2026-07-28
 
 ### Added
@@ -139,7 +154,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SSE event streaming
 - REST API for cycle read/edit and run control
 
-[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/danieljustus/symaira-vibecoder/compare/v0.4.0...v0.4.1
