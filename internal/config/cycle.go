@@ -50,6 +50,14 @@ type Step struct {
 	// "knows what to skip" without hard-coding it.
 	AutoSkip *AutoSkip `toml:"auto_skip" json:"auto_skip,omitempty"`
 
+	// RequiresReview is an optional declarative risk rule. After the step
+	// reaches done the engine evaluates When against the step's own attributes
+	// (e.g. when="category == release"); on a match the step is moved to
+	// needs_review instead of staying done, halting the autonomous walk until
+	// a human ack flips it back to done. Mirrors the AutoSkip shape, but is
+	// evaluated on completion rather than before the run.
+	RequiresReview *RequiresReview `toml:"requires_review" json:"requires_review,omitempty"`
+
 	// DependsOn lists step IDs that must be terminal before this one may run.
 	// Reserved for the engine; the MVP walks strictly in board order.
 	DependsOn []string `toml:"depends_on" json:"depends_on,omitempty"`
@@ -70,6 +78,15 @@ type Step struct {
 type AutoSkip struct {
 	Sensor string `toml:"sensor" json:"sensor"`
 	When   string `toml:"when" json:"when"`
+}
+
+// RequiresReview is a declarative per-step risk gate. When the step completes
+// and When matches the step's attributes, the engine moves the step to
+// needs_review (instead of done) so the cycle halts for an explicit human
+// ack. Supported When forms compare the step's category:
+// "category == release", "category != release" (values may be quoted).
+type RequiresReview struct {
+	When string `toml:"when" json:"when"`
 }
 
 // StepStatus drives the discreet GUI status icons. The wire/JSON and the
@@ -292,6 +309,10 @@ func (c *Cycle) Definition() *Cycle {
 			if s.AutoSkip != nil {
 				askip := *s.AutoSkip
 				sClone.AutoSkip = &askip
+			}
+			if s.RequiresReview != nil {
+				rr := *s.RequiresReview
+				sClone.RequiresReview = &rr
 			}
 			clone.Phases[pi].Steps[si] = sClone
 		}

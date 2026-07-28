@@ -294,6 +294,17 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		}
 
 		if doneErr == "" {
+			// Declarative risk gate: on a match the step lands in needs_review
+			// (halting the autonomous walk for a human ack) instead of done.
+			if review, reason := EvalRequiresReview(step.RequiresReview, step); review {
+				if err := e.setStatus(cycle, step, config.StatusNeedsReview, runID); err != nil {
+					return config.StatusFailed
+				}
+				e.log(runID, step.ID, "log", "✓ "+step.Name+" — requires review: "+reason)
+				return config.StatusNeedsReview
+			} else if reason != "" {
+				e.log(runID, step.ID, "log", "requires_review rule: "+reason)
+			}
 			if err := e.setStatus(cycle, step, config.StatusDone, runID); err != nil {
 				return config.StatusFailed
 			}
