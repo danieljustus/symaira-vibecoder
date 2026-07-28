@@ -18,6 +18,7 @@
 		3EA3F3D9A0536FE9C211A5EB /* SymvibeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		420DBE86D292AA3BB817BF4A /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6B76F6187E8B88B33A558743 /* SymvibeKit */; };
 		42F9421943E7B704B04EDA44 /* EngineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533DFB48FD93859F2B67D17 /* EngineManager.swift */; };
+		457D649384F1B11F6DBD3575 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D26AE7987E38C1D53125D90B /* Assets.xcassets */; };
 		5CA1E097EA2100F8D4DDF5D9 /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
 		62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
@@ -33,6 +34,7 @@
 		A8370641E8F31226287C7313 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		AFA7BB65E32FA126CE4C72C6 /* StepEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866D9AD7A8BE564297828C9F /* StepEditorView.swift */; };
 		BCF1563A3B400BAE55C19AD7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00F71A317448F9FA2C215DC /* ContentView.swift */; };
+		BEEA0145509EC2E4CD1BFBF4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D26AE7987E38C1D53125D90B /* Assets.xcassets */; };
 		C41DC7F9A2CB3D02AB160643 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754B7074A7B56E752D222358 /* BoardView.swift */; };
 		CA34E4A7B139C034C5EDC728 /* ActivityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */; };
 		ECCABB055892E8738049C63F /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754B7074A7B56E752D222358 /* BoardView.swift */; };
@@ -82,6 +84,7 @@
 		C00F71A317448F9FA2C215DC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C6353F83CFEF0DF52C3B8115 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CF0FB5072A8BBD742BCAD6E7 /* SymvibeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeWidget.swift; sourceTree = "<group>"; };
+		D26AE7987E38C1D53125D90B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DB45934DD59A95094F3188C9 /* RepoPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoPickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -172,6 +175,7 @@
 			isa = PBXGroup;
 			children = (
 				2E366D148251B477CDB046F5 /* Views */,
+				D26AE7987E38C1D53125D90B /* Assets.xcassets */,
 				2533DFB48FD93859F2B67D17 /* EngineManager.swift */,
 				B413B943AB92A8EEF1A40C38 /* Info.plist */,
 				66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */,
@@ -208,6 +212,7 @@
 			buildConfigurationList = FE44C621B65840B742396F90 /* Build configuration list for PBXNativeTarget "Symvibe" */;
 			buildPhases = (
 				94B6B803440FD0A8D9CF777A /* Sources */,
+				D46375B003B81D8A8E6A5D79 /* Resources */,
 				114B7BA085AEA73062B2311C /* Frameworks */,
 				E35B751470AA4FF266BF7789 /* Embed symvibe Engine */,
 			);
@@ -229,6 +234,7 @@
 			buildConfigurationList = CB998844C02EEB0B712A714E /* Build configuration list for PBXNativeTarget "Symvibe-iOS" */;
 			buildPhases = (
 				64FF8B26005C91CFE7E67608 /* Sources */,
+				62E9FD089B29E4D3D954E748 /* Resources */,
 				44B4117274B6809B8041BDB1 /* Frameworks */,
 				9A4D104B725FB375CB2BFC6E /* Embed Foundation Extensions */,
 			);
@@ -289,6 +295,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		62E9FD089B29E4D3D954E748 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BEEA0145509EC2E4CD1BFBF4 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D46375B003B81D8A8E6A5D79 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				457D649384F1B11F6DBD3575 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		E35B751470AA4FF266BF7789 /* Embed symvibe Engine */ = {
@@ -462,6 +487,8 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Symaira VibeCoder";
+				INFOPLIST_KEY_CFBundleName = "Symaira VibeCoder";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -482,6 +509,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Symaira VibeCoder";
+				INFOPLIST_KEY_CFBundleName = "Symaira VibeCoder";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -499,6 +528,8 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Symaira VibeCoder";
+				INFOPLIST_KEY_CFBundleName = "Symaira VibeCoder";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -596,6 +627,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sources/SymvibeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Symaira VibeCoder";
+				INFOPLIST_KEY_CFBundleName = "Symaira VibeCoder";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -659,7 +692,7 @@
 			repositoryURL = "https://github.com/danieljustus/symaira-appkit";
 			requirement = {
 				kind = exactVersion;
-				version = 0.1.0;
+				version = 0.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

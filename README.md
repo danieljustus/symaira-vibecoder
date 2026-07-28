@@ -139,6 +139,7 @@ symvibe serve            # Board starten und im Browser öffnen
 symvibe serve --no-open  # ohne Browser
 symvibe serve --dir ~/code/mein-repo   # Arbeitsverzeichnis des Cycles
 symvibe doctor           # opencode/git/gh prüfen + Modell-IDs gegen `opencode models` abgleichen
+symvibe pair             # QR-Pairing-Code für ein Remote-Gerät (LAN/Relay-Modus) generieren
 symvibe version
 ```
 
