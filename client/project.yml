@@ -31,8 +31,6 @@ targets:
       macOS: "14.0"
     sources:
       - path: Sources/SymvibeApp
-        excludes:
-          - "**/*.xcassets"
     entitlements:
       path: Symvibe.entitlements
     settings:
@@ -43,6 +41,9 @@ targets:
         CODE_SIGN_STYLE: Manual
         ENABLE_HARDENED_RUNTIME: true
         COMBINE_HIDPI_IMAGES: true
+        INFOPLIST_KEY_CFBundleDisplayName: Symaira VibeCoder
+        INFOPLIST_KEY_CFBundleName: Symaira VibeCoder
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - package: SymvibeClient
         product: SymvibeKit
@@ -73,8 +74,6 @@ targets:
       iOS: "17.0"
     sources:
       - path: Sources/SymvibeApp
-        excludes:
-          - "**/*.xcassets"
     entitlements:
       path: Symvibe.entitlements
     settings:
@@ -84,6 +83,9 @@ targets:
         CODE_SIGN_IDENTITY: ""
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_CFBundleDisplayName: Symaira VibeCoder
+        INFOPLIST_KEY_CFBundleName: Symaira VibeCoder
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - package: SymvibeClient
         product: SymvibeKit

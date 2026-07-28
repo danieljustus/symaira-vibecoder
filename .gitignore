@@ -29,6 +29,7 @@ coverage.*
 .github/prerelease/
 .github/review/
 .github/audit/
+docs/app-test/
 .omo/run-continuation/
 .omo/notepads/
 coverage.html
