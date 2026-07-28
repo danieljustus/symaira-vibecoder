@@ -53,11 +53,18 @@ type RecipeResult struct {
 	Trace         []runner.RunEvent `json:"trace"`
 	TracePath     string            `json:"trace_path,omitempty"`
 	ProposedDiff  string            `json:"proposed_diff,omitempty"`
-	ToolAllowList []string          `json:"tool_allow_list,omitempty"`
-	WriteCap      WriteCap          `json:"write_cap,omitempty"`
-	Error         string            `json:"error,omitempty"`
-	Backend       string            `json:"backend"`
-	Duration      time.Duration     `json:"duration"`
+	// RestoreStatus reports the outcome of the review-mode workspace restore:
+	// "ok" when the workspace was restored cleanly, "failed" when one or more
+	// restore commands errored. Empty when review_mode was not requested.
+	RestoreStatus string `json:"restore_status,omitempty"`
+	// RestoreError carries the restore failure detail when RestoreStatus is
+	// "failed". Empty otherwise.
+	RestoreError  string        `json:"restore_error,omitempty"`
+	ToolAllowList []string      `json:"tool_allow_list,omitempty"`
+	WriteCap      WriteCap      `json:"write_cap,omitempty"`
+	Error         string        `json:"error,omitempty"`
+	Backend       string        `json:"backend"`
+	Duration      time.Duration `json:"duration"`
 }
 
 // Validate checks required fields and returns an error describing the first
