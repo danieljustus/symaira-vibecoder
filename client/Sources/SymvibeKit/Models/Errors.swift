@@ -10,6 +10,17 @@ public struct ServerError: LocalizedError, Codable, Sendable, Equatable {
     }
 }
 
+/// A already-humanized failure from a `BoardStore` operation, ready to show.
+public struct OperationError: LocalizedError, Sendable, Equatable {
+    public let message: String
+
+    public var errorDescription: String? { message }
+
+    public init(_ message: String) {
+        self.message = message
+    }
+}
+
 public enum SymvibeError: LocalizedError, Sendable {
     case invalidURL
     case encoding(Error)
@@ -19,6 +30,9 @@ public enum SymvibeError: LocalizedError, Sendable {
     case decoding(Error)
     case pinningFailed
     case notConnected
+    /// `POST /api/cycle/import` rejected the template because this machine is
+    /// missing skills/categories/agents/sensors it needs.
+    case missingRequirements(missing: MissingRequirements, available: Catalog)
 
     public var errorDescription: String? {
         switch self {
@@ -38,6 +52,14 @@ public enum SymvibeError: LocalizedError, Sendable {
             "TLS pinning failed"
         case .notConnected:
             "Not connected"
+        case .missingRequirements(let missing, _):
+            "Template requires building blocks this machine does not have: "
+                + [
+                    missing.categories.isEmpty ? nil : "categories (\(missing.categories.joined(separator: ", ")))",
+                    missing.skills.isEmpty ? nil : "skills (\(missing.skills.joined(separator: ", ")))",
+                    missing.agents.isEmpty ? nil : "agents (\(missing.agents.joined(separator: ", ")))",
+                    missing.sensors.isEmpty ? nil : "sensors (\(missing.sensors.joined(separator: ", ")))",
+                ].compactMap { $0 }.joined(separator: "; ")
         }
     }
 }

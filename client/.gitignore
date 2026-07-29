@@ -2,3 +2,6 @@
 .swiftpm/
 .DS_Store
 xcuserdata/
+
+# Xcode build output from `xcodebuild -derivedDataPath`
+build/

@@ -3,6 +3,9 @@ import SymvibeKit
 
 struct ActivityLogView: View {
     let activityStore: ActivityStore
+    /// When false the view stops following new output, so the user can read
+    /// back through the log while a step keeps writing.
+    var autoScroll: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -24,9 +27,8 @@ struct ActivityLogView: View {
                         .padding(8)
                     }
                     .onChange(of: activityStore.lines.count) {
-                        if let last = activityStore.lines.last {
-                            proxy.scrollTo(last.id, anchor: .bottom)
-                        }
+                        guard autoScroll, let last = activityStore.lines.last else { return }
+                        proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
             }
