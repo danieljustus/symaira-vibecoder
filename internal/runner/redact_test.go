@@ -2,7 +2,6 @@ package runner
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 )
 
@@ -55,8 +54,8 @@ func TestSanitizeString(t *testing.T) {
 }
 
 func TestSanitizeEvent_DefaultRedactsRaw(t *testing.T) {
-	os.Unsetenv("SYMVIBE_RUNNER_DEBUG_RAW")
-	os.Unsetenv("SYMVIBE_DEBUG_RAW")
+	t.Setenv("SYMVIBE_RUNNER_DEBUG_RAW", "")
+	t.Setenv("SYMVIBE_DEBUG_RAW", "")
 
 	ev := RunEvent{
 		Kind: EventLog,
@@ -79,8 +78,7 @@ func TestSanitizeEvent_DefaultRedactsRaw(t *testing.T) {
 }
 
 func TestSanitizeEvent_DebugOptInKeepsRawSanitized(t *testing.T) {
-	os.Setenv("SYMVIBE_RUNNER_DEBUG_RAW", "1")
-	defer os.Unsetenv("SYMVIBE_RUNNER_DEBUG_RAW")
+	t.Setenv("SYMVIBE_RUNNER_DEBUG_RAW", "1")
 
 	ev := RunEvent{
 		Kind: EventLog,
