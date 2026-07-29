@@ -171,6 +171,7 @@ func (r *OpenCodeRunner) RunStep(ctx context.Context, req StepRequest) (<-chan R
 // emit sends an event unless the run context is already done (a cancelled run
 // may drop late events; the engine treats channel-close as terminal regardless).
 func emit(ch chan<- RunEvent, ctx context.Context, ev RunEvent) {
+	ev = SanitizeEvent(ev)
 	select {
 	case ch <- ev:
 	case <-ctx.Done():

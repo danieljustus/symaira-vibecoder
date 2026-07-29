@@ -284,5 +284,5 @@ func writeTrace(workspace, tracePath string, trace []runner.RunEvent) error {
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
 	}
-	return os.WriteFile(absPath, data, 0o644)
+	return os.WriteFile(absPath, data, 0o600)
 }
