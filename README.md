@@ -5,6 +5,8 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/danieljustus/symaira-vibecoder)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+![Symaira VibeCoder social preview](docs/assets/social-preview.png)
+
 > Eine schlanke grafische Oberfläche, die deinen **Cycle** (Cleaning → Code
 > Review → Planung → Coden → PR-Check → GH Alerts → Pre-Release → Release)
 > autonom durchläuft — angetrieben von **opencode**, mit Modell-Auswahl pro
