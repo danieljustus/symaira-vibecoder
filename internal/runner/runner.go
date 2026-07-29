@@ -30,16 +30,26 @@ const (
 	EventDone  RunEventKind = "done"  // TERMINAL: the run finished (see Err)
 )
 
+// Usage tracks token counts, producing model, and calculated cost.
+type Usage struct {
+	InputTokens     int     `json:"input_tokens,omitempty"`
+	OutputTokens    int     `json:"output_tokens,omitempty"`
+	CacheReadTokens int     `json:"cache_read_tokens,omitempty"`
+	Model           string  `json:"model,omitempty"`
+	CostUSD         float64 `json:"cost_usd,omitempty"`
+}
+
 // RunEvent is one normalized event from a running step. The final event on the
 // channel is always EventDone; its Err is "" on success and non-empty on
 // failure (timeout, backend error event, or non-zero exit). Intermediate
 // EventError events are informational — the terminal EventDone.Err is
 // authoritative for the step's outcome.
 type RunEvent struct {
-	Kind RunEventKind `json:"kind"`
-	Text string       `json:"text,omitempty"` // human-readable summary
-	Err  string       `json:"err,omitempty"`  // cause, on EventError / failed EventDone
-	Raw  string       `json:"raw,omitempty"`  // original backend payload (debug/feed)
+	Kind  RunEventKind `json:"kind"`
+	Text  string       `json:"text,omitempty"`  // human-readable summary
+	Err   string       `json:"err,omitempty"`   // cause, on EventError / failed EventDone
+	Raw   string       `json:"raw,omitempty"`   // original backend payload (debug/feed)
+	Usage *Usage       `json:"usage,omitempty"` // token usage & cost summary
 }
 
 // StepRequest is the backend-agnostic descriptor for one step attempt. The

@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/danieljustus/symaira-vibecoder/internal/pricing"
 )
 
 var anthropicAPIURL = "https://api.anthropic.com/v1/messages"
@@ -115,12 +117,18 @@ func (r *APIRunner) RunStep(ctx context.Context, req StepRequest) (<-chan RunEve
 
 		var firstErr string
 		var textBuf strings.Builder
+		var totalInput, totalOutput, totalCacheRead int
 		sc := bufio.NewScanner(resp.Body)
 		sc.Buffer(make([]byte, 0, 64*1024), 8<<20)
 		for sc.Scan() {
 			ev, delta := parseSSELine(sc.Bytes())
 			if ev == nil {
 				continue
+			}
+			if ev.Usage != nil {
+				totalInput += ev.Usage.InputTokens
+				totalOutput += ev.Usage.OutputTokens
+				totalCacheRead += ev.Usage.CacheReadTokens
 			}
 			switch ev.Kind {
 			case EventError:
@@ -142,6 +150,19 @@ func (r *APIRunner) RunStep(ctx context.Context, req StepRequest) (<-chan RunEve
 		}
 
 		done := RunEvent{Kind: EventDone}
+		modelID := anthropicModelID(req.Model, req.Variant)
+		if totalInput > 0 || totalOutput > 0 || totalCacheRead > 0 {
+			u := &Usage{
+				InputTokens:     totalInput,
+				OutputTokens:    totalOutput,
+				CacheReadTokens: totalCacheRead,
+				Model:           modelID,
+			}
+			if cost, ok := pricing.CalculateCost(modelID, totalInput, totalOutput, totalCacheRead); ok {
+				u.CostUSD = cost
+			}
+			done.Usage = u
+		}
 		switch {
 		case runCtx.Err() == context.DeadlineExceeded:
 			done.Err = "step timed out"
@@ -204,6 +225,15 @@ func parseSSELine(line []byte) (*RunEvent, bool) {
 	}
 
 	switch e.Type {
+	case "message_start":
+		if e.Message.Usage.InputTokens > 0 || e.Message.Usage.OutputTokens > 0 || e.Message.Usage.CacheReadInputTokens > 0 {
+			u := &Usage{
+				InputTokens:     e.Message.Usage.InputTokens,
+				OutputTokens:    e.Message.Usage.OutputTokens,
+				CacheReadTokens: e.Message.Usage.CacheReadInputTokens,
+			}
+			return &RunEvent{Kind: EventLog, Usage: u, Raw: string(data)}, false
+		}
 	case "content_block_delta":
 		if e.Delta.Type == "text_delta" {
 			return &RunEvent{Kind: EventLog, Text: e.Delta.Text, Raw: string(data)}, true
@@ -219,9 +249,20 @@ func parseSSELine(line []byte) (*RunEvent, bool) {
 			return &RunEvent{Kind: EventLog, Text: e.ContentBlock.Text, Raw: string(data)}, true
 		}
 	case "message_delta":
+		var u *Usage
+		if e.Usage.OutputTokens > 0 || e.Usage.InputTokens > 0 || e.Usage.CacheReadInputTokens > 0 {
+			u = &Usage{
+				InputTokens:     e.Usage.InputTokens,
+				OutputTokens:    e.Usage.OutputTokens,
+				CacheReadTokens: e.Usage.CacheReadInputTokens,
+			}
+		}
 		if e.Delta.StopReason == "error" || e.Delta.StopReason == "max_tokens" {
 			text := "stopped: " + e.Delta.StopReason
-			return &RunEvent{Kind: EventError, Err: text, Text: text, Raw: string(data)}, false
+			return &RunEvent{Kind: EventError, Err: text, Text: text, Usage: u, Raw: string(data)}, false
+		}
+		if u != nil {
+			return &RunEvent{Kind: EventLog, Usage: u, Raw: string(data)}, false
 		}
 	case "error":
 		text := firstNonEmpty(e.Error.Message, "Anthropic API error")
@@ -230,10 +271,22 @@ func parseSSELine(line []byte) (*RunEvent, bool) {
 	return nil, false
 }
 
+type sseMessage struct {
+	Usage sseUsage `json:"usage"`
+}
+
+type sseUsage struct {
+	InputTokens          int `json:"input_tokens"`
+	OutputTokens         int `json:"output_tokens"`
+	CacheReadInputTokens int `json:"cache_read_input_tokens"`
+}
+
 type sseEvent struct {
 	Type         string       `json:"type"`
+	Message      sseMessage   `json:"message"`
 	Delta        sseDelta     `json:"delta"`
 	ContentBlock contentBlock `json:"content_block"`
+	Usage        sseUsage     `json:"usage"`
 	Error        apiError     `json:"error"`
 }
 

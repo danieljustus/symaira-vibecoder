@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/danieljustus/symaira-vibecoder/internal/pricing"
 )
 
 type LocalAPIRunner struct {
@@ -97,12 +99,21 @@ func (r *LocalAPIRunner) RunStep(ctx context.Context, req StepRequest) (<-chan R
 		emit(ch, runCtx, RunEvent{Kind: EventStart, Text: "local API request started"})
 
 		var firstErr string
+		var totalInput, totalOutput int
 		sc := bufio.NewScanner(resp.Body)
 		sc.Buffer(make([]byte, 0, 64*1024), 8<<20)
 		for sc.Scan() {
 			ev, delta := parseOpenAISSELine(sc.Bytes())
 			if ev == nil {
 				continue
+			}
+			if ev.Usage != nil {
+				if ev.Usage.InputTokens > totalInput {
+					totalInput = ev.Usage.InputTokens
+				}
+				if ev.Usage.OutputTokens > totalOutput {
+					totalOutput = ev.Usage.OutputTokens
+				}
 			}
 			switch ev.Kind {
 			case EventError:
@@ -121,6 +132,17 @@ func (r *LocalAPIRunner) RunStep(ctx context.Context, req StepRequest) (<-chan R
 		}
 
 		done := RunEvent{Kind: EventDone}
+		if totalInput > 0 || totalOutput > 0 {
+			u := &Usage{
+				InputTokens:  totalInput,
+				OutputTokens: totalOutput,
+				Model:        req.Model,
+			}
+			if cost, ok := pricing.CalculateCost(req.Model, totalInput, totalOutput, 0); ok {
+				u.CostUSD = cost
+			}
+			done.Usage = u
+		}
 		switch {
 		case runCtx.Err() == context.DeadlineExceeded:
 			done.Err = "step timed out"
@@ -163,6 +185,12 @@ func openAIRequestBody(model, userMsg string) ([]byte, error) {
 type openAISSE struct {
 	Choices []openAIChoice `json:"choices"`
 	Error   *openAIError   `json:"error"`
+	Usage   *openAIUsage   `json:"usage"`
+}
+
+type openAIUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
 }
 
 type openAIChoice struct {
@@ -195,13 +223,25 @@ func parseOpenAISSELine(line []byte) (*RunEvent, bool) {
 		return &RunEvent{Kind: EventLog, Text: string(data), Raw: string(data)}, false
 	}
 
+	var u *Usage
+	if e.Usage != nil && (e.Usage.PromptTokens > 0 || e.Usage.CompletionTokens > 0) {
+		u = &Usage{
+			InputTokens:  e.Usage.PromptTokens,
+			OutputTokens: e.Usage.CompletionTokens,
+		}
+	}
+
 	if e.Error != nil && e.Error.Message != "" {
 		text := "local API error: " + e.Error.Message
-		return &RunEvent{Kind: EventError, Err: text, Text: text, Raw: string(data)}, false
+		return &RunEvent{Kind: EventError, Err: text, Text: text, Usage: u, Raw: string(data)}, false
 	}
 
 	if len(e.Choices) > 0 && e.Choices[0].Delta.Content != "" {
-		return &RunEvent{Kind: EventLog, Text: e.Choices[0].Delta.Content, Raw: string(data)}, true
+		return &RunEvent{Kind: EventLog, Text: e.Choices[0].Delta.Content, Usage: u, Raw: string(data)}, true
+	}
+
+	if u != nil {
+		return &RunEvent{Kind: EventLog, Usage: u, Raw: string(data)}, false
 	}
 
 	return nil, false
