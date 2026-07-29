@@ -1,0 +1,78 @@
+# Mutation testing (gremlins) — dispatch-only, non-blocking.
+#
+# This workflow NEVER gates a PR: it has no pull_request/push trigger, every
+# mutation job uses continue-on-error, artifacts upload with if: always(),
+# and the final step only reports outcomes. Surviving mutants are
+# informational, not failures.
+name: Mutation Testing
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: gremlins / ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - internal/engine
+          - internal/runner
+          - internal/config
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install gremlins
+        run: go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+
+      - name: Run gremlins on ${{ matrix.package }}
+        working-directory: ${{ matrix.package }}
+        run: |
+          set +e
+          gremlins unleash --output "gremlins-report.json" 2>&1 | tee gremlins.log
+          echo "GREMLINS_EXIT=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Upload gremlins artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gremlins-${{ matrix.package }}
+          path: |
+            ${{ matrix.package }}/gremlins-report.json
+            ${{ matrix.package }}/gremlins.log
+          if-no-files-found: warn
+
+      - name: Report outcome (informational, never fails)
+        if: always()
+        run: |
+          {
+            echo "## gremlins / ${{ matrix.package }}"
+            echo ""
+            echo "- gremlins exit code: ${GREMLINS_EXIT:-unknown} (ignored; mutation results are informational)"
+            if [ -f "${{ matrix.package }}/gremlins.log" ]; then
+              echo '```'
+              grep -E 'Killed:|Lived:|Not covered:|Timed out:|Test efficacy:|Mutator coverage:|Mutation testing' \
+                "${{ matrix.package }}/gremlins.log" || echo "(no summary lines found)"
+              echo '```'
+            else
+              echo "gremlins did not produce a log; see artifacts."
+            fi
+            echo ""
+            echo "Surviving (LIVED) mutants are informational only and do not gate any PR."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
