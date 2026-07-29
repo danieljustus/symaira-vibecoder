@@ -1,6 +1,7 @@
 # symvibe — Vibe Coding Baukasten
 
 [![CI](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml/badge.svg)](https://github.com/danieljustus/symaira-vibecoder/actions/workflows/ci.yml)
+[![Coverage](https://raw.githubusercontent.com/danieljustus/symaira-vibecoder/coverage-data/badge.svg)](https://github.com/danieljustus/symaira-vibecoder/blob/coverage-data/coverage.json)
 [![Latest Release](https://img.shields.io/github/v/release/danieljustus/symaira-vibecoder)](https://github.com/danieljustus/symaira-vibecoder/releases)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/danieljustus/symaira-vibecoder)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -260,6 +261,14 @@ Neben dem interaktiven Board stellt symvibe einen **versionierten Rezept-Runner*
 Die Antwort (`RecipeResult`) enthält Status, Dauer, Backend, Trace und den
 vorgeschlagenen Diff. Das Endpoint ist für Automation / MCP-Caller gedacht,
 beispielsweise um Vault-Workflows oder wiederholbare Codierungstasks auszuführen.
+
+## Coverage-Daten
+
+Die CI publiziert bei jedem Push auf `main` die Gesamt-Coverage als
+`coverage.json` (inkl. Threshold und Commit-SHA) sowie `badge.json`/`badge.svg`
+auf den **orphan Branch `coverage-data`** (Job `publish-coverage-data` in
+`.github/workflows/ci.yml`). Dieser Branch ist maschinell gepflegt, wird nie
+gemergt und ist **von der Branch-Cleanup-Policy ausgenommen**.
 
 ## Lizenz
 
