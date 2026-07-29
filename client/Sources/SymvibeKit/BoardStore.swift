@@ -253,6 +253,12 @@ public final class BoardStore {
         runState?.state == "paused"
     }
 
+    /// Board edits are rejected by the server with 409 while a run is active,
+    /// and demo mode has no server at all.
+    public var canEdit: Bool {
+        apiClient != nil && !isRunning && !isPaused
+    }
+
     public func runCycle() async -> String? {
         guard let apiClient else { return "Not connected" }
         do {
@@ -319,6 +325,128 @@ public final class BoardStore {
     /// Returns a mutable copy of the cycle for editing.
     public func editableCycle() -> Cycle? {
         cycle
+    }
+
+    /// Persists a single edited step without touching the rest of the board.
+    public func saveStep(_ step: Step) async -> String? {
+        guard var updated = cycle else { return "No cycle loaded" }
+        updated.replace(step)
+        return await saveCycle(updated)
+    }
+
+    // MARK: - Cycle Structure
+
+    public func addStep(phaseID: String, name: String, skill: String, category: String) async -> String? {
+        await mutate { api in
+            let step = Step(id: "", name: name, order: 0, skill: skill, category: category)
+            _ = try await api.addStep(phaseID: phaseID, step: step)
+        }
+    }
+
+    public func deleteStep(_ stepID: String) async -> String? {
+        await mutate { api in try await api.deleteStep(stepID) }
+    }
+
+    public func duplicateStep(_ stepID: String) async -> String? {
+        await mutate { api in _ = try await api.duplicateStep(stepID) }
+    }
+
+    public func moveStep(_ stepID: String, toPhaseID: String, toIndex: Int) async -> String? {
+        await mutate { api in try await api.moveStep(stepID, toPhaseID: toPhaseID, toIndex: toIndex) }
+    }
+
+    public func addPhase(name: String) async -> String? {
+        await mutate { api in _ = try await api.addPhase(name: name) }
+    }
+
+    public func deletePhase(_ phaseID: String) async -> String? {
+        await mutate { api in try await api.deletePhase(phaseID) }
+    }
+
+    /// Renames a phase. The server has no dedicated endpoint, so this goes
+    /// through a full-cycle PUT.
+    public func renamePhase(_ phaseID: String, to name: String) async -> String? {
+        guard var updated = cycle else { return "No cycle loaded" }
+        guard let idx = updated.phases.firstIndex(where: { $0.id == phaseID }) else { return "Phase not found" }
+        updated.phases[idx].name = name
+        return await saveCycle(updated)
+    }
+
+    // MARK: - Import / Export / Library / Assist
+
+    public func exportCycle() async -> Result<(template: Template, json: Data), OperationError> {
+        guard let apiClient else { return .failure(OperationError("Not connected")) }
+        do {
+            return .success(try await apiClient.exportCycle())
+        } catch {
+            return .failure(OperationError(friendlyError(error)))
+        }
+    }
+
+    /// Imports a template, replacing the active cycle. Returns `.missing` when
+    /// the server rejected it for unmet requirements so the caller can offer a
+    /// category remap.
+    public func importTemplate(_ template: Template, remap: [String: String] = [:]) async -> ImportOutcome {
+        guard let apiClient else { return .failed("Not connected") }
+        do {
+            cycle = try await apiClient.importCycle(template: template, remap: remap)
+            return .imported
+        } catch SymvibeError.missingRequirements(let missing, let available) {
+            return .missing(missing, available)
+        } catch {
+            return .failed(friendlyError(error))
+        }
+    }
+
+    public enum ImportOutcome: Sendable {
+        case imported
+        case missing(MissingRequirements, Catalog)
+        case failed(String)
+    }
+
+    public func libraryIndex() async -> Result<[LibraryEntry], OperationError> {
+        guard let apiClient else { return .failure(OperationError("Not connected")) }
+        do {
+            return .success(try await apiClient.libraryIndex())
+        } catch {
+            return .failure(OperationError(friendlyError(error)))
+        }
+    }
+
+    public func fetchLibraryTemplate(url: String) async -> Result<Template, OperationError> {
+        guard let apiClient else { return .failure(OperationError("Not connected")) }
+        do {
+            return .success(try await apiClient.fetchLibraryTemplate(from: url))
+        } catch {
+            return .failure(OperationError(friendlyError(error)))
+        }
+    }
+
+    /// Runs the agent-backed cycle assistant. Returns the proposed cycle — it is
+    /// already persisted server-side, so the board is refreshed on success.
+    public func assist(instruction: String) async -> Result<Cycle, OperationError> {
+        guard let apiClient, let current = cycle else { return .failure(OperationError("Not connected")) }
+        do {
+            let updated = try await apiClient.assistCycle(cycle: current, instruction: instruction)
+            cycle = updated
+            syncWidgetData()
+            return .success(updated)
+        } catch {
+            return .failure(OperationError(friendlyError(error)))
+        }
+    }
+
+    /// Runs a structure-changing call and reloads the board from the server,
+    /// which is the source of truth for ids and ordering.
+    private func mutate(_ body: (APIClient) async throws -> Void) async -> String? {
+        guard let apiClient else { return "Not connected" }
+        do {
+            try await body(apiClient)
+            await load()
+            return nil
+        } catch {
+            return friendlyError(error)
+        }
     }
 
     // MARK: - Doctor

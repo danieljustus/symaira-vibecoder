@@ -9,16 +9,21 @@
 /* Begin PBXBuildFile section */
 		067062F696E3D9F24E10A6F7 /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7798CDD0F1DBBACD568BE3F9 /* SymvibeKit */; };
 		0E4AEC1D32093302D2B1553D /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
+		1499EF26653107DF3702C2C8 /* ImportTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6AEA9457100CBFED3A4E53 /* ImportTemplateView.swift */; };
 		15993F71526A380CC9137F2D /* SymvibeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */; };
+		18E7485471024BAF5729D780 /* AssistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 459DA20C4381ED1317298C06 /* AssistView.swift */; };
 		203971F2C96A8EF3F86DD167 /* EngineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533DFB48FD93859F2B67D17 /* EngineManager.swift */; };
 		20D1B6AF06D898BCC57B2A8C /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF380D6F7175D164C2E49FFD /* SymvibeKit */; };
 		22C8BA4D2FC1632BB52B072E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */; };
 		2347E95F24900BB1A7D16401 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F91E279CD9A5267D297D879 /* OnboardingView.swift */; };
 		33ADDC8EA1D8AC74D9DF767C /* ActivityLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */; };
+		3B62A6E1990584FE74BFE6A0 /* AssistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 459DA20C4381ED1317298C06 /* AssistView.swift */; };
 		3EA3F3D9A0536FE9C211A5EB /* SymvibeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		420DBE86D292AA3BB817BF4A /* SymvibeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6B76F6187E8B88B33A558743 /* SymvibeKit */; };
 		42F9421943E7B704B04EDA44 /* EngineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2533DFB48FD93859F2B67D17 /* EngineManager.swift */; };
 		457D649384F1B11F6DBD3575 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D26AE7987E38C1D53125D90B /* Assets.xcassets */; };
+		59857D6096B3286E00193096 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7481E51F4EB0A69B420FC0 /* LibraryView.swift */; };
+		59DCC181223581208CE29B9A /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7481E51F4EB0A69B420FC0 /* LibraryView.swift */; };
 		5CA1E097EA2100F8D4DDF5D9 /* DoctorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6EC7E85B9555FD383620AA /* DoctorView.swift */; };
 		62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
 		65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
@@ -29,6 +34,7 @@
 		81D9944597B31BCCEDA6CE4C /* SymvibeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */; };
 		847FAB3F8BC3FC9F80161013 /* PairingQRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */; };
 		917304043D126A3DC227C0A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00F71A317448F9FA2C215DC /* ContentView.swift */; };
+		971A88B7D2E23CA3FC1CBE55 /* ImportTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6AEA9457100CBFED3A4E53 /* ImportTemplateView.swift */; };
 		9943820EF3D54EFE3A555E4F /* SymvibeShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */; };
 		9B1F9B405248C471A5E828AF /* StepEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866D9AD7A8BE564297828C9F /* StepEditorView.swift */; };
 		A8370641E8F31226287C7313 /* RepoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB45934DD59A95094F3188C9 /* RepoPickerView.swift */; };
@@ -70,13 +76,16 @@
 		2C05DF751B0AD3D09AB420EA /* client */ = {isa = PBXFileReference; lastKnownFileType = folder; name = client; path = .; sourceTree = SOURCE_ROOT; };
 		3BAED05E6555E756B7313BCC /* SymvibeShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeShortcuts.swift; sourceTree = "<group>"; };
 		3DEA4E2DAF10ED6C4ADE7A15 /* SymvibeWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SymvibeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		459DA20C4381ED1317298C06 /* AssistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistView.swift; sourceTree = "<group>"; };
 		5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityLogView.swift; sourceTree = "<group>"; };
 		5FCBF747EF7A55CD255B6738 /* Symvibe-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Symvibe-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B08466C6C1CD4305ED9A0F /* SymvibeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymvibeApp.swift; sourceTree = "<group>"; };
+		6D7481E51F4EB0A69B420FC0 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingQRView.swift; sourceTree = "<group>"; };
 		754B7074A7B56E752D222358 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		813DB6A6BA7348FBFC7CE2B3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		866D9AD7A8BE564297828C9F /* StepEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepEditorView.swift; sourceTree = "<group>"; };
+		8D6AEA9457100CBFED3A4E53 /* ImportTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportTemplateView.swift; sourceTree = "<group>"; };
 		8F91E279CD9A5267D297D879 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AF6EC7E85B9555FD383620AA /* DoctorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorView.swift; sourceTree = "<group>"; };
 		B3047F873C59E29238A29C1E /* Symvibe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Symvibe.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,9 +130,12 @@
 			isa = PBXGroup;
 			children = (
 				5F6A8328CDB984AA4FD6389E /* ActivityLogView.swift */,
+				459DA20C4381ED1317298C06 /* AssistView.swift */,
 				754B7074A7B56E752D222358 /* BoardView.swift */,
 				C00F71A317448F9FA2C215DC /* ContentView.swift */,
 				AF6EC7E85B9555FD383620AA /* DoctorView.swift */,
+				8D6AEA9457100CBFED3A4E53 /* ImportTemplateView.swift */,
+				6D7481E51F4EB0A69B420FC0 /* LibraryView.swift */,
 				8F91E279CD9A5267D297D879 /* OnboardingView.swift */,
 				6F74B4A4C1A944BF7AFB5FEC /* PairingQRView.swift */,
 				DB45934DD59A95094F3188C9 /* RepoPickerView.swift */,
@@ -343,10 +355,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				33ADDC8EA1D8AC74D9DF767C /* ActivityLogView.swift in Sources */,
+				3B62A6E1990584FE74BFE6A0 /* AssistView.swift in Sources */,
 				ECCABB055892E8738049C63F /* BoardView.swift in Sources */,
 				917304043D126A3DC227C0A9 /* ContentView.swift in Sources */,
 				5CA1E097EA2100F8D4DDF5D9 /* DoctorView.swift in Sources */,
 				203971F2C96A8EF3F86DD167 /* EngineManager.swift in Sources */,
+				1499EF26653107DF3702C2C8 /* ImportTemplateView.swift in Sources */,
+				59857D6096B3286E00193096 /* LibraryView.swift in Sources */,
 				7BFF0E88BC8F0A20DFD4F917 /* OnboardingView.swift in Sources */,
 				847FAB3F8BC3FC9F80161013 /* PairingQRView.swift in Sources */,
 				62C905BD4286F636790F8E58 /* RepoPickerView.swift in Sources */,
@@ -362,10 +377,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA34E4A7B139C034C5EDC728 /* ActivityLogView.swift in Sources */,
+				18E7485471024BAF5729D780 /* AssistView.swift in Sources */,
 				C41DC7F9A2CB3D02AB160643 /* BoardView.swift in Sources */,
 				BCF1563A3B400BAE55C19AD7 /* ContentView.swift in Sources */,
 				0E4AEC1D32093302D2B1553D /* DoctorView.swift in Sources */,
 				42F9421943E7B704B04EDA44 /* EngineManager.swift in Sources */,
+				971A88B7D2E23CA3FC1CBE55 /* ImportTemplateView.swift in Sources */,
+				59DCC181223581208CE29B9A /* LibraryView.swift in Sources */,
 				2347E95F24900BB1A7D16401 /* OnboardingView.swift in Sources */,
 				65FAB0C71DA6C4C265B127E5 /* PairingQRView.swift in Sources */,
 				A8370641E8F31226287C7313 /* RepoPickerView.swift in Sources */,
