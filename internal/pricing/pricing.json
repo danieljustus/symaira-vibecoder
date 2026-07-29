@@ -1,0 +1,67 @@
+{
+  "updated_at": "2026-07-29T00:00:00Z",
+  "models": {
+    "anthropic/claude-3-7-sonnet-20250219": {
+      "input_cost_per_m": 3.0,
+      "output_cost_per_m": 15.0,
+      "cache_read_cost_per_m": 0.3
+    },
+    "anthropic/claude-3-5-sonnet-20241022": {
+      "input_cost_per_m": 3.0,
+      "output_cost_per_m": 15.0,
+      "cache_read_cost_per_m": 0.3
+    },
+    "anthropic/claude-3-5-haiku-20241022": {
+      "input_cost_per_m": 0.8,
+      "output_cost_per_m": 4.0,
+      "cache_read_cost_per_m": 0.08
+    },
+    "anthropic/claude-3-opus-20240229": {
+      "input_cost_per_m": 15.0,
+      "output_cost_per_m": 75.0,
+      "cache_read_cost_per_m": 1.5
+    },
+    "openai/gpt-4o": {
+      "input_cost_per_m": 2.5,
+      "output_cost_per_m": 10.0,
+      "cache_read_cost_per_m": 1.25
+    },
+    "openai/gpt-4o-mini": {
+      "input_cost_per_m": 0.15,
+      "output_cost_per_m": 0.6,
+      "cache_read_cost_per_m": 0.075
+    },
+    "openai/o1": {
+      "input_cost_per_m": 15.0,
+      "output_cost_per_m": 60.0,
+      "cache_read_cost_per_m": 7.5
+    },
+    "openai/o3-mini": {
+      "input_cost_per_m": 1.1,
+      "output_cost_per_m": 4.4,
+      "cache_read_cost_per_m": 0.55
+    }
+  },
+  "fallbacks": {
+    "claude-sonnet": {
+      "input_cost_per_m": 3.0,
+      "output_cost_per_m": 15.0,
+      "cache_read_cost_per_m": 0.3
+    },
+    "claude-haiku": {
+      "input_cost_per_m": 0.8,
+      "output_cost_per_m": 4.0,
+      "cache_read_cost_per_m": 0.08
+    },
+    "claude-opus": {
+      "input_cost_per_m": 15.0,
+      "output_cost_per_m": 75.0,
+      "cache_read_cost_per_m": 1.5
+    },
+    "gpt-4o": {
+      "input_cost_per_m": 2.5,
+      "output_cost_per_m": 10.0,
+      "cache_read_cost_per_m": 1.25
+    }
+  }
+}
