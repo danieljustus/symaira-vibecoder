@@ -34,22 +34,22 @@ const (
 
 // LedgerEntry is one append-only line in the run log JSONL file.
 type LedgerEntry struct {
-	SchemaVersion int         `json:"schema_version"`
-	Type          EntryType   `json:"type"`
-	TS            int64       `json:"ts"` // unix millis
-	RunID         string      `json:"run_id"`
-	CycleID       string      `json:"cycle_id,omitempty"`
-	Mode          string      `json:"mode,omitempty"` // step | cycle
-	WorkspaceMode string      `json:"workspace_mode,omitempty"`
+	SchemaVersion int       `json:"schema_version"`
+	Type          EntryType `json:"type"`
+	TS            int64     `json:"ts"` // unix millis
+	RunID         string    `json:"run_id"`
+	CycleID       string    `json:"cycle_id,omitempty"`
+	Mode          string    `json:"mode,omitempty"` // step | cycle
+	WorkspaceMode string    `json:"workspace_mode,omitempty"`
 
 	// Step fields (set for step_start, step_end)
-	StepID      string `json:"step_id,omitempty"`
-	StepName    string `json:"step_name,omitempty"`
-	Category    string `json:"category,omitempty"`
-	Backend     string `json:"backend,omitempty"`
-	Model       string `json:"model,omitempty"`
-	Variant     string `json:"variant,omitempty"`
-	Attempt     int    `json:"attempt,omitempty"`
+	StepID   string `json:"step_id,omitempty"`
+	StepName string `json:"step_name,omitempty"`
+	Category string `json:"category,omitempty"`
+	Backend  string `json:"backend,omitempty"`
+	Model    string `json:"model,omitempty"`
+	Variant  string `json:"variant,omitempty"`
+	Attempt  int    `json:"attempt,omitempty"`
 
 	// Terminal fields (set for step_end, run_end)
 	Status      string `json:"status,omitempty"`
@@ -84,23 +84,23 @@ type StepSummary struct {
 
 // RunSummary is the terminal structured record for one run.
 type RunSummary struct {
-	SchemaVersion int            `json:"schema_version"`
-	RunID         string         `json:"run_id"`
-	CycleID       string         `json:"cycle_id"`
-	Mode          string         `json:"mode"`
-	WorkspaceMode string         `json:"workspace_mode"`
-	StartedAt     int64          `json:"started_at"` // unix millis
-	EndedAt       int64          `json:"ended_at"`   // unix millis
-	Status        string         `json:"status"`     // complete | halted | failed | cancelled
-	Duration      string         `json:"duration"`
-	Cancelled     bool           `json:"cancelled"`
-	Steps         []StepSummary  `json:"steps"`
-	TotalCostUSD  float64        `json:"total_cost_usd"`
+	SchemaVersion int           `json:"schema_version"`
+	RunID         string        `json:"run_id"`
+	CycleID       string        `json:"cycle_id"`
+	Mode          string        `json:"mode"`
+	WorkspaceMode string        `json:"workspace_mode"`
+	StartedAt     int64         `json:"started_at"` // unix millis
+	EndedAt       int64         `json:"ended_at"`   // unix millis
+	Status        string        `json:"status"`     // complete | halted | failed | cancelled
+	Duration      string        `json:"duration"`
+	Cancelled     bool          `json:"cancelled"`
+	Steps         []StepSummary `json:"steps"`
+	TotalCostUSD  float64       `json:"total_cost_usd"`
 }
 
 // Ledger manages the versioned execution log for runs and steps.
 type Ledger struct {
-	mu       sync.Mutex
+	mu        sync.Mutex
 	ledgerDir string
 
 	// Active run state (in-memory, aggregated from appended entries)

@@ -60,7 +60,6 @@ func New(cfg *config.Config, res *config.Resolver, run runner.Runner, bus *Bus) 
 	return &Engine{cfg: cfg, res: res, run: run, bus: bus, saveCycle: config.SaveCycle, ledger: NewLedger(config.DataDir())}
 }
 
-
 // Bus exposes the event bus for the SSE handler.
 func (e *Engine) Bus() *Bus { return e.bus }
 
