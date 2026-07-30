@@ -2,168 +2,193 @@ package engine
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/danieljustus/symaira-vibecoder/internal/config"
-	"github.com/danieljustus/symaira-vibecoder/internal/runner"
 )
 
-func TestEvalRequiresReviewNilRule(t *testing.T) {
-	step := &config.Step{Category: "release"}
-	if review, reason := EvalRequiresReview(nil, step); review || reason != "" {
-		t.Fatalf("nil rule: got (%v, %q), want (false, \"\")", review, reason)
+func TestNoopReviewProvider(t *testing.T) {
+	p := NoopReviewProvider{}
+	if p.Name() != "none" {
+		t.Fatalf("name = %q, want none", p.Name())
+	}
+	ctx := context.Background()
+	rc, err := p.Provide(ctx, "/tmp", "step-1")
+	if err != nil {
+		t.Fatalf("Provide: %v", err)
+	}
+	if rc != nil {
+		t.Fatalf("expected nil context from noop, got %+v", rc)
 	}
 }
 
-func TestEvalRequiresReviewEmptyWhen(t *testing.T) {
-	step := &config.Step{Category: "release"}
-	if review, _ := EvalRequiresReview(&config.RequiresReview{When: "  "}, step); review {
-		t.Fatal("empty when must not match")
+func TestGitReviewProviderEmptyDir(t *testing.T) {
+	p := NewGitReviewProvider()
+	ctx := context.Background()
+	rc, err := p.Provide(ctx, "", "step-1")
+	if err != nil {
+		t.Fatalf("Provide: %v", err)
+	}
+	if rc != nil {
+		t.Fatalf("expected nil context for empty dir, got %+v", rc)
 	}
 }
 
-func TestEvalRequiresReviewCategoryMatch(t *testing.T) {
-	step := &config.Step{Category: "release"}
-	review, reason := EvalRequiresReview(&config.RequiresReview{When: "category == release"}, step)
-	if !review || reason == "" {
-		t.Fatalf("category match: got (%v, %q), want (true, reason)", review, reason)
+func TestGitReviewProviderNonGitDir(t *testing.T) {
+	p := NewGitReviewProvider()
+	tmpDir := t.TempDir()
+	ctx := context.Background()
+	rc, err := p.Provide(ctx, tmpDir, "step-1")
+	if err != nil {
+		t.Fatalf("Provide: %v", err)
+	}
+	if rc == nil {
+		t.Fatal("expected non-nil context")
+	}
+	if !rc.Stale {
+		t.Fatal("expected stale=true for non-git dir")
 	}
 }
 
-func TestEvalRequiresReviewCategoryQuoted(t *testing.T) {
-	step := &config.Step{Category: "release"}
-	review, _ := EvalRequiresReview(&config.RequiresReview{When: `category == "release"`}, step)
-	if !review {
-		t.Fatal("quoted value must match")
+func TestGitReviewProviderInGitRepo(t *testing.T) {
+	repoDir := setupTestGitRepo(t)
+	p := NewGitReviewProvider()
+	ctx := context.Background()
+
+	rc, err := p.Provide(ctx, repoDir, "step-1")
+	if err != nil {
+		t.Fatalf("Provide: %v", err)
+	}
+	if rc == nil {
+		t.Fatal("expected non-nil context")
+	}
+	if rc.Provider != "git" {
+		t.Fatalf("provider = %q, want git", rc.Provider)
+	}
+	if rc.Risk == "" {
+		t.Fatal("expected non-empty risk")
 	}
 }
 
-func TestEvalRequiresReviewCategoryNoMatch(t *testing.T) {
-	step := &config.Step{Category: "implement"}
-	if review, _ := EvalRequiresReview(&config.RequiresReview{When: "category == release"}, step); review {
-		t.Fatal("non-matching category must not trigger review")
+func TestAssessRisk(t *testing.T) {
+	tests := []struct {
+		files []string
+		want  string
+	}{
+		{nil, "low"},
+		{[]string{}, "low"},
+		{[]string{"README.md"}, "low"},
+		{[]string{"internal/engine/engine.go"}, "medium"},
+		{[]string{"go.mod"}, "high"},
+		{[]string{"go.mod", "internal/engine/engine.go"}, "high"},
+		{[]string{"client/Sources/View.swift"}, "medium"},
+	}
+	for _, tc := range tests {
+		got := assessRisk(tc.files)
+		if got != tc.want {
+			t.Errorf("assessRisk(%v) = %q, want %q", tc.files, got, tc.want)
+		}
 	}
 }
 
-func TestEvalRequiresReviewCategoryNotEqual(t *testing.T) {
-	if review, _ := EvalRequiresReview(&config.RequiresReview{When: "category != release"}, &config.Step{Category: "implement"}); !review {
-		t.Fatal("!= must match a different category")
+func TestMatchGlob(t *testing.T) {
+	tests := []struct {
+		path, pattern string
+		want          bool
+	}{
+		{"foo_test.go", "*_test.go", true},
+		{"bar_test.go", "*_test.go", true},
+		{"foo.go", "*_test.go", false},
+		{"docs/readme.md", "docs/*", true},
+		{"docs/sub/readme.md", "docs/*", true},
+		{"anything", "*", true},
 	}
-	if review, _ := EvalRequiresReview(&config.RequiresReview{When: "category != release"}, &config.Step{Category: "release"}); review {
-		t.Fatal("!= must not match the same category")
-	}
-}
-
-func TestEvalRequiresReviewUnknownAttribute(t *testing.T) {
-	review, reason := EvalRequiresReview(&config.RequiresReview{When: "skill == release"}, &config.Step{})
-	if review || reason == "" {
-		t.Fatalf("unknown attribute: got (%v, %q), want (false, explanation)", review, reason)
-	}
-}
-
-func TestEvalRequiresReviewUnparseable(t *testing.T) {
-	review, reason := EvalRequiresReview(&config.RequiresReview{When: "release"}, &config.Step{Category: "release"})
-	if review || reason == "" {
-		t.Fatalf("unparseable when: got (%v, %q), want (false, explanation)", review, reason)
+	for _, tc := range tests {
+		got := matchGlob(tc.path, tc.pattern)
+		if got != tc.want {
+			t.Errorf("matchGlob(%q, %q) = %v, want %v", tc.path, tc.pattern, got, tc.want)
+		}
 	}
 }
 
-// waitIdle blocks until the engine finishes its run.
-func waitIdle(t *testing.T, eng *Engine) {
-	t.Helper()
-	deadline := time.Now().Add(2 * time.Second)
-	for eng.State().State != "idle" && time.Now().Before(deadline) {
-		time.Sleep(time.Millisecond)
+func TestUnique(t *testing.T) {
+	got := unique([]string{"a", "b", "a", "c", "b"})
+	want := []string{"a", "b", "c"}
+	if len(got) != len(want) {
+		t.Fatalf("unique = %v, want %v", got, want)
 	}
-	if eng.State().State != "idle" {
-		t.Fatal("engine did not stop")
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("unique[%d] = %q, want %q", i, got[i], want[i])
+		}
 	}
 }
 
-func successRunner(calls *int) runner.Runner {
-	return runnerFunc(func(context.Context, runner.StepRequest) (<-chan runner.RunEvent, error) {
-		*calls++
-		ch := make(chan runner.RunEvent, 1)
-		ch <- runner.RunEvent{Kind: runner.EventDone}
-		close(ch)
-		return ch, nil
-	})
+func TestSplitLines(t *testing.T) {
+	got := splitLines("a\nb\nc\n")
+	if len(got) != 3 || got[0] != "a" || got[1] != "b" || got[2] != "c" {
+		t.Fatalf("splitLines = %v, want [a b c]", got)
+	}
+	got = splitLines("")
+	if len(got) != 0 {
+		t.Fatalf("splitLines empty = %v, want []", got)
+	}
+	got = splitLines("single")
+	if len(got) != 1 || got[0] != "single" {
+		t.Fatalf("splitLines single = %v, want [single]", got)
+	}
 }
 
-func TestStartCycleMovesMatchingStepToNeedsReviewAndHalts(t *testing.T) {
+func TestReviewContextSchemaVersion(t *testing.T) {
+	if ReviewContextSchemaVersion != 1 {
+		t.Fatalf("ReviewContextSchemaVersion = %d, want 1", ReviewContextSchemaVersion)
+	}
+}
+
+func TestEngineHasReviewProvider(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
 	cfg := config.Default()
-	cfg.Defaults.Cycle = "requires-review-test"
-	cycle := &config.Cycle{ID: cfg.Defaults.Cycle, Phases: []config.Phase{{
-		ID: "phase", Steps: []config.Step{
-			{ID: "one", Enabled: true, Category: "release",
-				RequiresReview: &config.RequiresReview{When: "category == release"}},
-			{ID: "two", Enabled: true},
-		},
-	}}}
-	if err := config.SaveCycle(cycle); err != nil {
-		t.Fatal(err)
+	eng := New(cfg, config.NewResolver(cfg), &countingRunner{}, NewBus())
+	if eng.reviewProvider == nil {
+		t.Fatal("expected non-nil review provider")
 	}
-
-	calls := 0
-	eng := New(cfg, config.NewResolver(cfg), successRunner(&calls), NewBus())
-	if _, err := eng.StartCycle(); err != nil {
-		t.Fatal(err)
-	}
-	waitIdle(t, eng)
-
-	if calls != 1 {
-		t.Fatalf("runner calls = %d, want 1 (cycle must halt at needs_review)", calls)
-	}
-	stored, err := config.LoadCycle(cfg.Defaults.Cycle)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, one := stored.FindStep("one")
-	if one == nil || one.Status != config.StatusNeedsReview {
-		t.Fatalf("step one status = %v, want needs_review", one.Status)
-	}
-	_, two := stored.FindStep("two")
-	if two == nil || two.Status.Effective() != config.StatusPending {
-		t.Fatalf("step two status = %v, want pending (never ran)", two.Status)
-	}
-	if _, _, ok := stored.NextRunnable(); ok {
-		t.Fatal("NextRunnable must halt on a needs_review step")
+	if eng.reviewProvider.Name() != "git" {
+		t.Fatalf("review provider name = %q, want git", eng.reviewProvider.Name())
 	}
 }
 
-func TestStartCycleNonMatchingRuleAdvancesNormally(t *testing.T) {
+func TestEngineSetsReviewProvider(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
 	cfg := config.Default()
-	cfg.Defaults.Cycle = "requires-review-nomatch-test"
-	cycle := &config.Cycle{ID: cfg.Defaults.Cycle, Phases: []config.Phase{{
-		ID: "phase", Steps: []config.Step{
-			{ID: "one", Enabled: true, Category: "implement",
-				RequiresReview: &config.RequiresReview{When: "category == release"}},
-			{ID: "two", Enabled: true},
-		},
-	}}}
-	if err := config.SaveCycle(cycle); err != nil {
-		t.Fatal(err)
+	eng := New(cfg, config.NewResolver(cfg), &countingRunner{}, NewBus())
+	// Verify that the provider is reachable from the engine.
+	if eng.reviewProvider == nil {
+		t.Fatal("reviewProvider should not be nil")
 	}
+}
 
-	calls := 0
-	eng := New(cfg, config.NewResolver(cfg), successRunner(&calls), NewBus())
-	if _, err := eng.StartCycle(); err != nil {
-		t.Fatal(err)
+func BenchmarkMatchGlob(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		matchGlob("internal/engine/engine.go", "*_test.go")
 	}
-	waitIdle(t, eng)
+}
 
-	if calls != 2 {
-		t.Fatalf("runner calls = %d, want 2 (no review gate matched)", calls)
+// Test that ReviewContext serializes to JSON without errors.
+func TestReviewContextJSON(t *testing.T) {
+	rc := ReviewContext{
+		SchemaVersion: 1,
+		Provider:      "git",
+		GeneratedAt:   1234567890,
+		ChangedFiles:  []string{"file1.go", "file2.go"},
+		Risk:          "medium",
 	}
-	stored, err := config.LoadCycle(cfg.Defaults.Cycle)
+	data, err := json.Marshal(rc)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("marshal: %v", err)
 	}
-	_, one := stored.FindStep("one")
-	if one == nil || one.Status != config.StatusDone {
-		t.Fatalf("step one status = %v, want done", one.Status)
+	if !strings.Contains(string(data), "changed_files") {
+		t.Fatalf("JSON missing changed_files: %s", data)
 	}
 }

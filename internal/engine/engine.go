@@ -37,12 +37,13 @@ type RunState struct {
 // Engine orchestrates runs over a single shared working tree (steps are
 // strictly sequential in the MVP).
 type Engine struct {
-	cfg       *config.Config
-	res       *config.Resolver
-	run       runner.Runner
-	bus       *Bus
-	saveCycle func(*config.Cycle) error
-	ledger    *Ledger
+	cfg            *config.Config
+	res            *config.Resolver
+	run            runner.Runner
+	bus            *Bus
+	saveCycle      func(*config.Cycle) error
+	ledger         *Ledger
+	reviewProvider ReviewContextProvider
 
 	mu       sync.Mutex
 	running  bool
@@ -58,7 +59,15 @@ type Engine struct {
 // New builds an engine. It constructs even when the runner is unavailable; only
 // starting a run then fails, keeping the board usable read-only.
 func New(cfg *config.Config, res *config.Resolver, run runner.Runner, bus *Bus) *Engine {
-	return &Engine{cfg: cfg, res: res, run: run, bus: bus, saveCycle: config.SaveCycle, ledger: NewLedger(config.DataDir())}
+	return &Engine{
+		cfg:            cfg,
+		res:            res,
+		run:            run,
+		bus:            bus,
+		saveCycle:      config.SaveCycle,
+		ledger:         NewLedger(config.DataDir()),
+		reviewProvider: NewGitReviewProvider(),
+	}
 }
 
 // Bus exposes the event bus for the SSE handler.
@@ -348,6 +357,12 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		}
 
 		if doneErr == "" {
+			// Fetch review context if a provider is available.
+			reviewCtx, reviewErr := e.reviewProvider.Provide(ctx, dir, step.ID)
+			if reviewErr == nil && reviewCtx != nil {
+				e.log(runID, step.ID, "log", "review-context: "+reviewCtx.Provider+", "+strconv.Itoa(len(reviewCtx.ChangedFiles))+" files, risk="+reviewCtx.Risk)
+			}
+
 			// Declarative risk gate: on a match the step lands in needs_review
 			// (halting the autonomous walk for a human ack) instead of done.
 			if review, reason := EvalRequiresReview(step.RequiresReview, step); review {
