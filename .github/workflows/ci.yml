@@ -68,6 +68,9 @@ jobs:
       - name: build
         run: go build -ldflags "-X github.com/danieljustus/symaira-vibecoder/internal/version.Version=${GITHUB_SHA::12}" -o symvibe ./cmd/symvibe
 
+      - name: wire-contract
+        run: .github/scripts/check-wire-contract.sh
+
       - name: smoke
         run: ./symvibe version
 
