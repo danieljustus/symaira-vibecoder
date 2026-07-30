@@ -48,6 +48,7 @@ func newTestServer(t *testing.T, available bool) *Server {
 	}
 	bus := engine.NewBus()
 	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+	t.Cleanup(eng.WaitForRunDone)
 
 	return New(cfg, eng, nil)
 }

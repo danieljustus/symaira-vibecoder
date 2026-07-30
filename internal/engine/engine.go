@@ -52,6 +52,7 @@ type Engine struct {
 	curStep  string
 	mode     string
 	wsInfo   *WorkspaceInfo // workspace for the active run
+	runWg    sync.WaitGroup // tracks the run goroutine for test synchronization
 }
 
 // New builds an engine. It constructs even when the runner is unavailable; only
@@ -227,11 +228,13 @@ func (e *Engine) start(mode string, body func(ctx context.Context, runID string)
 	}
 	e.ledger.RunStarted(runID, e.cfg.Defaults.Cycle, mode, wsMode)
 
+	e.runWg.Add(1)
 	go func() {
 		var cancelled bool
 		defer func() {
 			cancel()
 			e.ledger.RunEnded(cancelled)
+			e.runWg.Done()
 			e.mu.Lock()
 			e.running = false
 			e.cancelFn = nil
@@ -465,6 +468,13 @@ func (e *Engine) CleanupWorkspace() {
 	e.wsInfo = nil
 	e.mu.Unlock()
 	CleanupWorkspace("", ws)
+}
+
+// WaitForRunDone blocks until the current run goroutine has fully completed,
+// including ledger cleanup. Safe to call concurrently; returns immediately
+// when no run is active.
+func (e *Engine) WaitForRunDone() {
+	e.runWg.Wait()
 }
 
 // LatestRunSummary returns the most recent ledger summary from disk, or nil.
