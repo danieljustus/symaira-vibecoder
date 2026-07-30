@@ -27,12 +27,12 @@ func TestWireContractGoJSONTags(t *testing.T) {
 	// Register every Go type we want to check. Each entry maps the contract
 	// type name to a zero-value instance of the Go struct.
 	goTypes := map[string]interface{}{
-		"Cycle":          Cycle{},
-		"Phase":          Phase{},
-		"Step":           Step{},
-		"AutoSkip":       AutoSkip{},
-		"RequiresReview": RequiresReview{},
-		"Model":          Model{},
+		"Cycle":           Cycle{},
+		"Phase":           Phase{},
+		"Step":            Step{},
+		"AutoSkip":        AutoSkip{},
+		"RequiresReview":  RequiresReview{},
+		"Model":           Model{},
 		"WorkspaceConfig": WorkspaceConfig{},
 	}
 
@@ -119,7 +119,7 @@ func loadContract(t *testing.T) wireContract {
 // (not recursing into nested structs).
 func extractJSONTags(v interface{}) []string {
 	t := reflect.TypeOf(v)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	if t.Kind() != reflect.Struct {
