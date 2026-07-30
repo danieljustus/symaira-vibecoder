@@ -42,6 +42,7 @@ type Engine struct {
 	run       runner.Runner
 	bus       *Bus
 	saveCycle func(*config.Cycle) error
+	ledger    *Ledger
 
 	mu       sync.Mutex
 	running  bool
@@ -51,12 +52,13 @@ type Engine struct {
 	curStep  string
 	mode     string
 	wsInfo   *WorkspaceInfo // workspace for the active run
+	runWg    sync.WaitGroup // tracks the run goroutine for test synchronization
 }
 
 // New builds an engine. It constructs even when the runner is unavailable; only
 // starting a run then fails, keeping the board usable read-only.
 func New(cfg *config.Config, res *config.Resolver, run runner.Runner, bus *Bus) *Engine {
-	return &Engine{cfg: cfg, res: res, run: run, bus: bus, saveCycle: config.SaveCycle}
+	return &Engine{cfg: cfg, res: res, run: run, bus: bus, saveCycle: config.SaveCycle, ledger: NewLedger(config.DataDir())}
 }
 
 // Bus exposes the event bus for the SSE handler.
@@ -219,9 +221,20 @@ func (e *Engine) start(mode string, body func(ctx context.Context, runID string)
 
 	e.publishState()
 
+	// Determine workspace mode for the ledger.
+	wsMode := "shared"
+	if e.wsInfo != nil {
+		wsMode = e.wsInfo.Mode
+	}
+	e.ledger.RunStarted(runID, e.cfg.Defaults.Cycle, mode, wsMode)
+
+	e.runWg.Add(1)
 	go func() {
+		var cancelled bool
 		defer func() {
 			cancel()
+			e.ledger.RunEnded(cancelled)
+			e.runWg.Done()
 			e.mu.Lock()
 			e.running = false
 			e.cancelFn = nil
@@ -230,6 +243,7 @@ func (e *Engine) start(mode string, body func(ctx context.Context, runID string)
 			e.publishState()
 		}()
 		body(ctx, runID)
+		cancelled = ctx.Err() != nil
 	}()
 
 	return runID, nil
@@ -247,11 +261,13 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	} else if skip {
 		_ = e.setStatus(cycle, step, config.StatusSkipped, runID)
 		e.log(runID, step.ID, "log", "auto-skip: "+reason)
+		e.ledger.StepDone(step.ID, config.StatusSkipped, "", "", reason, nil)
 		return config.StatusSkipped
 	}
 
 	// 2) Mark running.
 	if err := e.setStatus(cycle, step, config.StatusInProgress, runID); err != nil {
+		e.ledger.StepDone(step.ID, config.StatusFailed, "persistence", err.Error(), "", nil)
 		return config.StatusFailed
 	}
 
@@ -260,10 +276,14 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 	if err != nil {
 		e.log(runID, step.ID, "error", "resolve model: "+err.Error())
 		_ = e.setStatus(cycle, step, config.StatusFailed, runID)
+		e.ledger.StepDone(step.ID, config.StatusFailed, "resolve", err.Error(), "", nil)
 		return config.StatusFailed
 	}
 	msg := composeMessage(*step)
 	e.log(runID, step.ID, "log", "▶ "+step.Name+"  ["+spec.Model+display(spec.Variant)+"]  via "+rm.Source)
+
+	// Record step start in the ledger.
+	e.ledger.StepStarted(step.ID, step.Name, step.Category, e.cfg.Runner.Backend, spec.Model, spec.Variant, 0)
 
 	// 4) Run with the fallback chain.
 	stepRunner := e.run
@@ -274,12 +294,13 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		if err != nil {
 			e.log(runID, step.ID, "error", "backend override: "+err.Error())
 			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
+			e.ledger.StepDone(step.ID, config.StatusFailed, "backend_override", err.Error(), "", nil)
 			return config.StatusFailed
 		}
 		stepRunner = r
 	}
 
-	for {
+	for attempt := 1; ; attempt++ {
 		req := runner.StepRequest{
 			RunID:      runID,
 			StepID:     step.ID,
@@ -295,15 +316,26 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		if rerr != nil {
 			e.log(runID, step.ID, "error", "runner: "+rerr.Error())
 			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
+			e.ledger.StepDone(step.ID, config.StatusFailed, "runner", rerr.Error(), "", nil)
 			return config.StatusFailed
 		}
 
 		var doneErr string
+		var usage *UsageRecord
 		gotDone := false
 		for ev := range ch {
 			if ev.Kind == runner.EventDone {
 				gotDone = true
 				doneErr = ev.Err
+				if ev.Usage != nil {
+					usage = &UsageRecord{
+						InputTokens:     ev.Usage.InputTokens,
+						OutputTokens:    ev.Usage.OutputTokens,
+						CacheReadTokens: ev.Usage.CacheReadTokens,
+						Model:           ev.Usage.Model,
+						CostUSD:         ev.Usage.CostUSD,
+					}
+				}
 				continue
 			}
 			line := firstNonEmpty(ev.Text, ev.Err)
@@ -320,17 +352,21 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 			// (halting the autonomous walk for a human ack) instead of done.
 			if review, reason := EvalRequiresReview(step.RequiresReview, step); review {
 				if err := e.setStatus(cycle, step, config.StatusNeedsReview, runID); err != nil {
+					e.ledger.StepDone(step.ID, config.StatusFailed, "persistence", err.Error(), "", usage)
 					return config.StatusFailed
 				}
 				e.log(runID, step.ID, "log", "✓ "+step.Name+" — requires review: "+reason)
+				e.ledger.StepDone(step.ID, config.StatusNeedsReview, "", "", "", usage)
 				return config.StatusNeedsReview
 			} else if reason != "" {
 				e.log(runID, step.ID, "log", "requires_review rule: "+reason)
 			}
 			if err := e.setStatus(cycle, step, config.StatusDone, runID); err != nil {
+				e.ledger.StepDone(step.ID, config.StatusFailed, "persistence", err.Error(), "", usage)
 				return config.StatusFailed
 			}
 			e.log(runID, step.ID, "log", "✓ "+step.Name)
+			e.ledger.StepDone(step.ID, config.StatusDone, "", "", "", usage)
 			return config.StatusDone
 		}
 
@@ -338,16 +374,20 @@ func (e *Engine) execStep(ctx context.Context, cycle *config.Cycle, step *config
 		if ctx.Err() != nil {
 			_ = e.setStatus(cycle, step, config.StatusPending, runID)
 			e.log(runID, step.ID, "log", "cancelled — step reset to pending")
+			e.ledger.StepDone(step.ID, config.StatusPending, "cancelled", doneErr, "", usage)
 			return config.StatusPending
 		}
 		next, ok := config.NextAttempt(spec, rm)
 		if !ok {
 			_ = e.setStatus(cycle, step, config.StatusFailed, runID)
 			e.log(runID, step.ID, "error", "all models exhausted — "+doneErr)
+			e.ledger.StepDone(step.ID, config.StatusFailed, "exhausted", doneErr, "", usage)
 			return config.StatusFailed
 		}
 		e.log(runID, step.ID, "log", "model "+spec.Model+" failed ("+doneErr+") — retrying with "+next.Model)
 		spec = next
+		// Record the retry attempt.
+		e.ledger.StepStarted(step.ID, step.Name, step.Category, e.cfg.Runner.Backend, spec.Model, spec.Variant, attempt)
 	}
 }
 
@@ -428,6 +468,19 @@ func (e *Engine) CleanupWorkspace() {
 	e.wsInfo = nil
 	e.mu.Unlock()
 	CleanupWorkspace("", ws)
+}
+
+// WaitForRunDone blocks until the current run goroutine has fully completed,
+// including ledger cleanup. Safe to call concurrently; returns immediately
+// when no run is active.
+func (e *Engine) WaitForRunDone() {
+	e.runWg.Wait()
+}
+
+// LatestRunSummary returns the most recent ledger summary from disk, or nil.
+// Safe to call concurrently; returns an error only on I/O failure.
+func (e *Engine) LatestRunSummary() (*RunSummary, error) {
+	return e.ledger.LatestSummary()
 }
 
 func (e *Engine) isPaused() bool {
