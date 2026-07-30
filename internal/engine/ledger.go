@@ -270,7 +270,7 @@ func (l *Ledger) appendEntryLocked(e LedgerEntry) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	enc := json.NewEncoder(f)
 	return enc.Encode(e)
 }
