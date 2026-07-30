@@ -13,11 +13,12 @@ import (
 // Baukasten ("cycle") schema — stored per-cycle under the DATA dir so GUI edits
 // survive: ~/.local/share/symvibe/cycles/<id>.toml
 type Cycle struct {
-	SchemaVersion int     `toml:"schema_version" json:"schema_version"`
-	ID            string  `toml:"id" json:"id"`
-	Name          string  `toml:"name" json:"name"`
-	Description   string  `toml:"description" json:"description"`
-	Phases        []Phase `toml:"phases" json:"phases"`
+	SchemaVersion int             `toml:"schema_version" json:"schema_version"`
+	ID            string          `toml:"id" json:"id"`
+	Name          string          `toml:"name" json:"name"`
+	Description   string          `toml:"description" json:"description"`
+	Workspace     WorkspaceConfig `toml:"workspace" json:"workspace"`
+	Phases        []Phase         `toml:"phases" json:"phases"`
 }
 
 // Phase is a category/column on the board.

@@ -29,6 +29,9 @@ type RunState struct {
 	CurrentStep string `json:"current_step,omitempty"`
 	Cycle       string `json:"cycle,omitempty"`
 	Mode        string `json:"mode,omitempty"` // step | cycle
+
+	// Workspace describes the active working tree for the current or last run.
+	Workspace *WorkspaceInfo `json:"workspace,omitempty"`
 }
 
 // Engine orchestrates runs over a single shared working tree (steps are
@@ -47,6 +50,7 @@ type Engine struct {
 	runID    string
 	curStep  string
 	mode     string
+	wsInfo   *WorkspaceInfo // workspace for the active run
 }
 
 // New builds an engine. It constructs even when the runner is unavailable; only
@@ -79,7 +83,14 @@ func (e *Engine) State() RunState {
 			st = "paused"
 		}
 	}
-	return RunState{State: st, RunID: e.runID, CurrentStep: e.curStep, Cycle: e.cfg.Defaults.Cycle, Mode: e.mode}
+	// Return a copy of workspace info to avoid races on the pointer.
+	var wsCopy *WorkspaceInfo
+	if e.wsInfo != nil {
+		c := *e.wsInfo
+		c.CleanupFn = nil // strip callback for external consumers
+		wsCopy = &c
+	}
+	return RunState{State: st, RunID: e.runID, CurrentStep: e.curStep, Cycle: e.cfg.Defaults.Cycle, Mode: e.mode, Workspace: wsCopy}
 }
 
 // StartStep runs exactly one step (the GUI "Run only this step"). Non-blocking:
@@ -115,6 +126,17 @@ func (e *Engine) StartCycle() (string, error) {
 			e.bus.Publish(Event{Type: "error", RunID: runID, Line: "load cycle: " + err.Error()})
 			return
 		}
+
+		// Workspace preflight: for isolated cycles, create or reuse a linked
+		// worktree. The resolved path becomes the working directory for all
+		// steps in this run.
+		ws, err := PrepareWorkspace(ctx, cycle, e.workingDir())
+		if err != nil {
+			e.bus.Publish(Event{Type: "error", RunID: runID, Line: "workspace: " + err.Error()})
+			return
+		}
+		e.setWorkspaceInfo(ws)
+
 		if n := cycle.ResetStuck(); n > 0 {
 			if err := e.saveCycle(cycle); err != nil {
 				e.bus.Publish(Event{Type: "error", RunID: runID, Line: "persist reset: " + err.Error()})
@@ -365,6 +387,12 @@ func (e *Engine) log(runID, stepID, kind, line string) {
 }
 
 func (e *Engine) workingDir() string {
+	e.mu.Lock()
+	ws := e.wsInfo
+	e.mu.Unlock()
+	if ws != nil {
+		return ws.Path
+	}
 	if e.cfg.Runner.WorkingDir != "" {
 		return e.cfg.Runner.WorkingDir
 	}
@@ -376,6 +404,30 @@ func (e *Engine) setCurStep(id string) {
 	e.curStep = id
 	e.mu.Unlock()
 	e.publishState()
+}
+
+// setWorkspaceInfo stores the workspace info under lock.
+func (e *Engine) setWorkspaceInfo(ws *WorkspaceInfo) {
+	e.mu.Lock()
+	e.wsInfo = ws
+	e.mu.Unlock()
+}
+
+// WorkspaceInfo returns the active workspace info (nil when idle/shared).
+func (e *Engine) WorkspaceInfo() *WorkspaceInfo {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.wsInfo
+}
+
+// CleanupWorkspace removes the isolated worktree if one was created. Safe to
+// call multiple times; no-op when not isolated.
+func (e *Engine) CleanupWorkspace() {
+	e.mu.Lock()
+	ws := e.wsInfo
+	e.wsInfo = nil
+	e.mu.Unlock()
+	CleanupWorkspace("", ws)
 }
 
 func (e *Engine) isPaused() bool {
