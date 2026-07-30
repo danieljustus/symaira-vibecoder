@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "comment": "Canonical wire contract for symvibe's JSON API. Every key listed here must exist as a Go json tag and a Swift Codable key. Add new keys here when extending models.",
+  "types": {
+    "Cycle": {
+      "keys": ["schema_version", "id", "name", "description", "workspace", "phases"],
+      "status_enum": null
+    },
+    "WorkspaceConfig": {
+      "keys": ["mode", "worktree_dir"],
+      "status_enum": null
+    },
+    "Phase": {
+      "keys": ["id", "name", "order", "steps"],
+      "status_enum": null
+    },
+    "Step": {
+      "keys": ["id", "name", "order", "skill", "category", "agent", "prompt_suffix", "enabled", "model_override", "backend_override", "auto_skip", "requires_review", "depends_on", "parallel_safe", "status"],
+      "status_enum": null
+    },
+    "AutoSkip": {
+      "keys": ["sensor", "when"],
+      "status_enum": null
+    },
+    "RequiresReview": {
+      "keys": ["when"],
+      "status_enum": null
+    },
+    "Model": {
+      "keys": ["id", "temperature", "variant", "fallback_models"],
+      "status_enum": null
+    },
+    "StepStatus": {
+      "keys": [],
+      "status_enum": ["pending", "in_progress", "done", "skipped", "failed", "blocked", "needs_review"]
+    },
+    "Event": {
+      "keys": ["type", "run_id", "step_id", "status", "kind", "line", "state", "ts"],
+      "status_enum": null
+    },
+    "RunState": {
+      "keys": ["state", "run_id", "current_step", "cycle", "mode", "workspace"],
+      "status_enum": null
+    }
+  }
+}
