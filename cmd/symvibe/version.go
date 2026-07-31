@@ -19,10 +19,10 @@ func versionCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			info := versionkit.New("symvibe", version.Version, 1)
 			if jsonOut {
-				info.Write(os.Stdout)
+				_ = info.Write(os.Stdout)
 				return
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), info.String())
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(), info.String())
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOut, "json", false, "output version as JSON for the GUI handshake")
