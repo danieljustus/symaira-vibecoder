@@ -11,16 +11,18 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
 
+	"github.com/danieljustus/symaira-corekit/exitcodes"
+	"github.com/danieljustus/symaira-corekit/logkit"
 	"github.com/danieljustus/symaira-vibecoder/internal/version"
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})))
+	logkit.InitDefault("symvibe")
+	_ = logkit.Default() // initialises the default slog.Logger from env
 
 	root := &cobra.Command{
 		Use:           "symvibe",
@@ -34,6 +36,6 @@ func main() {
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		os.Exit(int(exitcodes.ExitGeneric))
 	}
 }
