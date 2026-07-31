@@ -7,6 +7,8 @@ require (
 	github.com/spf13/cobra v1.10.2
 )
 
+require github.com/danieljustus/symaira-corekit v0.8.0 // indirect
+
 require (
 	github.com/hashicorp/mdns v1.0.7
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
