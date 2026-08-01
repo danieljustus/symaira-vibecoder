@@ -24,9 +24,8 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           if [ -z "${CERTIFICATE_P12:-}" ]; then
-            echo "::warning::CERTIFICATE_P12 secret is not set. Building unsigned."
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::CERTIFICATE_P12 secret is not set. Refusing an unsigned release."
+            exit 1
           fi
           echo "signed=true" >> "$GITHUB_OUTPUT"
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
@@ -64,25 +63,42 @@ jobs:
           NOTARY_API_ISSUER: ${{ secrets.NOTARY_API_ISSUER }}
           NOTARY_API_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
         run: |
-          if [ -z "${NOTARY_API_KEY:-}" ]; then
-            echo "::warning::NOTARY_API_KEY secret is not set. Skipping notarization."
-            exit 0
+          set -euo pipefail
+          for required in NOTARY_API_KEY NOTARY_API_KEY_ID NOTARY_API_ISSUER; do
+            if [ -z "${!required:-}" ]; then
+              echo "::error::$required secret is not set. Refusing an unnotarized release."
+              exit 1
+            fi
+          done
+          KEY_FILE="$RUNNER_TEMP/notary-api-key.p8"
+          trap 'rm -f "$KEY_FILE"' EXIT
+          if printf '%s' "$NOTARY_API_KEY" | openssl base64 -d -A > "$KEY_FILE" 2>/dev/null \
+            && openssl pkey -in "$KEY_FILE" -noout >/dev/null 2>&1; then
+            :
+          else
+            printf '%s' "$NOTARY_API_KEY" > "$KEY_FILE"
           fi
+          FOUND=0
           for ARCH in amd64 arm64; do
-            for f in dist/*_darwin_${ARCH}/*; do
+            for f in dist/*_darwin_${ARCH}*/*; do
               if [ -f "$f" ] && file "$f" | grep -q "Mach-O"; then
+                FOUND=1
                 echo "Notarizing $f..."
                 ZIP_PATH="$RUNNER_TEMP/notarize_${ARCH}.zip"
                 ditto -c -k --keepParent "$f" "$ZIP_PATH"
                 xcrun notarytool submit "$ZIP_PATH" \
-                  --apple-id "${NOTARY_API_KEY_ID}" \
-                  --team-id "${NOTARY_API_ISSUER}" \
-                  --password "${NOTARY_API_KEY}" \
+                  --key "$KEY_FILE" \
+                  --key-id "$NOTARY_API_KEY_ID" \
+                  --issuer "$NOTARY_API_ISSUER" \
                   --wait
                 rm -f "$ZIP_PATH"
               fi
             done
           done
+          if [ "$FOUND" -eq 0 ]; then
+            echo "::error::No Darwin Mach-O artifacts found for notarization."
+            exit 1
+          fi
 
       - name: Clean up signing material
         if: always()
@@ -118,9 +134,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${CERTIFICATE_P12:-}" ]; then
-            echo "::warning::CERTIFICATE_P12 secret is not set. Building unsigned."
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::CERTIFICATE_P12 secret is not set. Refusing an unsigned DMG."
+            exit 1
           fi
           echo "signed=true" >> "$GITHUB_OUTPUT"
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
@@ -184,6 +199,7 @@ jobs:
               DEVELOPMENT_TEAM="$TEAM_ID" \
               CODE_SIGNING_ALLOWED=YES \
               CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
               OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime"
           else
             echo "::warning::Building GUI without code signing"
@@ -208,6 +224,7 @@ jobs:
           NOTARY_API_ISSUER: ${{ secrets.NOTARY_API_ISSUER }}
           NOTARY_API_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
         run: |
+          set -euo pipefail
           APP="${{ env.APP_BUNDLE }}"
           if [ -z "$APP" ] || [ ! -d "$APP" ]; then
             echo "::error::App bundle not found"
@@ -215,27 +232,28 @@ jobs:
           fi
           ZIP_PATH="$RUNNER_TEMP/Symvibe.zip"
           ditto -c -k --keepParent "$APP" "$ZIP_PATH"
-          if [ -n "${NOTARY_API_KEY:-}" ]; then
-            KEY_FILE="$RUNNER_TEMP/notary-api-key.p8"
-            echo -n "${NOTARY_API_KEY}" | base64 --decode > "$KEY_FILE"
-            set +e
-            xcrun notarytool submit "$ZIP_PATH" \
-              -k "$KEY_FILE" \
-              -d "${NOTARY_API_KEY_ID}" \
-              -i "${NOTARY_API_ISSUER}" \
-              --wait
-            NOTARY_EXIT=$?
-            set -e
-            rm -f "$KEY_FILE"
-            if [ $NOTARY_EXIT -eq 0 ]; then
-              xcrun stapler staple "$APP"
-              echo "Notarization complete"
-            else
-              echo "::warning::Notarization failed (exit $NOTARY_EXIT). DMG will be unsigned."
+          for required in NOTARY_API_KEY NOTARY_API_KEY_ID NOTARY_API_ISSUER; do
+            if [ -z "${!required:-}" ]; then
+              echo "::error::$required secret is not set. Refusing an unnotarized DMG."
+              exit 1
             fi
+          done
+          KEY_FILE="$RUNNER_TEMP/notary-api-key.p8"
+          trap 'rm -f "$KEY_FILE" "$ZIP_PATH"' EXIT
+          if printf '%s' "$NOTARY_API_KEY" | openssl base64 -d -A > "$KEY_FILE" 2>/dev/null \
+            && openssl pkey -in "$KEY_FILE" -noout >/dev/null 2>&1; then
+            :
           else
-            echo "::warning::NOTARY_API_KEY not set. Skipping notarization."
+            printf '%s' "$NOTARY_API_KEY" > "$KEY_FILE"
           fi
+          xcrun notarytool submit "$ZIP_PATH" \
+            --key "$KEY_FILE" \
+            --key-id "$NOTARY_API_KEY_ID" \
+            --issuer "$NOTARY_API_ISSUER" \
+            --wait
+          xcrun stapler staple "$APP"
+          xcrun stapler validate "$APP"
+          echo "Notarization complete"
 
       - name: Create DMG
         id: dmg
