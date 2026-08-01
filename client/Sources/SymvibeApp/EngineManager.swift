@@ -38,7 +38,7 @@ public final class EngineManager {
 
     public init() {}
 
-    nonisolated deinit {
+    deinit {
         process?.terminate()
     }
 
