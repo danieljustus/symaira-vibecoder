@@ -199,7 +199,7 @@ jobs:
             echo "::error::App bundle not found after build"
             exit 1
           fi
-          echo "APP_BUNDLE=$APP_BUNDLE" >> "$GITHUB_ENV"
+          echo "APP_BUNDLE=$PWD/$APP_BUNDLE" >> "$GITHUB_ENV"
 
       - name: Prepare app bundle for notarization
         if: steps.signing.outputs.signed == 'true'
