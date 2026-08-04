@@ -21,8 +21,15 @@ if [ -z "$THRESHOLD" ]; then
   exit 1
 fi
 
-CGO_ENABLED=0 go test ./... -coverprofile=coverage.out
-TOTAL=$(go tool cover -func=coverage.out | grep '^total:' | awk '{print $3}' | tr -d '%')
+# COVERAGE_PROFILE (optional): reuse an existing coverprofile instead of
+# re-running the test suite (used by CI, where build-test already produced
+# one with -race). Unset = run the suite locally as before.
+PROFILE="${COVERAGE_PROFILE:-}"
+if [ -z "$PROFILE" ]; then
+  PROFILE=coverage.out
+  CGO_ENABLED=0 go test ./... -coverprofile="$PROFILE"
+fi
+TOTAL=$(go tool cover -func="$PROFILE" | grep '^total:' | awk '{print $3}' | tr -d '%')
 
 echo "Total coverage: ${TOTAL}%"
 echo "Threshold: ${THRESHOLD}%"
