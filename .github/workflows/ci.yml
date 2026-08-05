@@ -82,6 +82,99 @@ jobs:
       - name: smoke
         run: ./symvibe version
 
+  # Boots the real server (not just `version`) and asserts it comes up clean:
+  # /api/version answers, / serves the embedded board, and the process exits
+  # without panic:/level=ERROR on stderr. The log is always uploaded so a
+  # startup failure is diagnosable.
+  launch:
+    needs: build-test
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.x"
+          cache: true
+
+      # Artifacts aren't shared between jobs, so rebuild the binary here.
+      - name: build
+        run: go build -o symvibe ./cmd/symvibe
+
+      - name: boot server and assert it comes up clean
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          port=4317
+          base="http://127.0.0.1:${port}"
+          log=server.log
+
+          : > "$log"
+          ./symvibe serve --no-open >"$log" 2>&1 &
+          srv=$!
+          cleanup() {
+            kill "$srv" 2>/dev/null || true
+            wait "$srv" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          # Bounded poll: 30 attempts x 2s.
+          up=0
+          for i in $(seq 1 30); do
+            if curl -sf "${base}/api/version" >/dev/null 2>&1; then
+              echo "server answered ${base}/api/version on attempt ${i}"
+              up=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$up" -ne 1 ]; then
+            echo "server never answered ${base}/api/version within 60s" >&2
+            tail -n 50 "$log" >&2 || true
+            exit 1
+          fi
+
+          # Assert / returns the embedded board.
+          body="$(curl -sf "${base}/")"
+          if ! grep -q "Baukasten Board" <<<"$body"; then
+            echo "GET / did not return the embedded board" >&2
+            exit 1
+          fi
+
+          # Assert /api/version carries the API contract version.
+          vbody="$(curl -sf "${base}/api/version")"
+          if ! grep -q '"api_version"' <<<"$vbody"; then
+            echo "GET /api/version returned an unexpected payload" >&2
+            exit 1
+          fi
+
+          echo "board and API verified — stopping server"
+
+          # Stop the server, then check its output for startup errors.
+          kill "$srv" 2>/dev/null || true
+          wait "$srv" 2>/dev/null || true
+          trap - EXIT
+
+          if grep -Eq "panic:|level=ERROR" "$log"; then
+            echo "server log contains panic: or level=ERROR — see uploaded server.log" >&2
+            grep -E "panic:|level=ERROR" "$log" >&2 || true
+            exit 1
+          fi
+
+          echo "server log clean (no panic:, no level=ERROR)"
+
+      - name: upload server log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: launch-server-log-${{ github.sha }}
+          path: server.log
+          retention-days: 1
+
   vuln:
     runs-on: ubuntu-latest
     permissions:
