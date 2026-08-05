@@ -8,9 +8,19 @@ import (
 
 var credPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)\bsk-[a-zA-Z0-9_\-]{8,}`),
-	regexp.MustCompile(`(?i)\bBearer\s+[a-zA-Z0-9_\-\.=]+`),
+	regexp.MustCompile(`(?i)\bBearer\s+[a-zA-Z0-9_\-\.+/=]+`),
 	regexp.MustCompile(`(?i)\b(api_key|apikey)=[^&\s]+`),
 	regexp.MustCompile(`(?i)[?&]token=[^&\s]+`),
+	regexp.MustCompile(`(?i)\bghp_[A-Za-z0-9]{36}`),
+	regexp.MustCompile(`(?i)\bgithub_` + `pat_[A-Za-z0-9_]{20,}`),
+	regexp.MustCompile(`(?i)\bglpat` + `-[A-Za-z0-9_-]{20}`),
+	regexp.MustCompile(`(?i)\b(AKIA|ASIA)[0-9A-Z]{16}`),
+	regexp.MustCompile(`(?i)\bAIza[0-9A-Za-z_-]{35}`),
+	// The PEM pattern is assembled via concatenation so no format-valid
+	// key literal appears in source (GitHub secret scanning flags them).
+	// It redacts the header and, when present, the body through the END
+	// marker.
+	regexp.MustCompile("-----" + "BEGIN [A-Z ]*PRIVATE KEY-----(?:[\\s\\S]*?-----" + "END [A-Z ]*PRIVATE KEY-----)?"),
 }
 
 func isDebugRawEnabled() bool {

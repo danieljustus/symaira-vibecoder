@@ -2,6 +2,7 @@ package runner
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -138,4 +139,50 @@ func hasSubstr(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// TestSanitizeString_ProviderTokens covers the token families added in
+// issue #140: GitHub (classic + fine-grained PATs), GitLab, AWS access
+// keys, Google API keys, PEM private keys, and Bearer tokens whose
+// charset includes base64/base64url characters (+ and /).
+//
+// Format-valid dummy tokens are assembled at runtime via concatenation
+// so no secret-looking literal appears in source (GitHub secret
+// scanning / push protection blocks such literals).
+func TestSanitizeString_ProviderTokens(t *testing.T) {
+	ghpToken := "ghp_" + strings.Repeat("A", 36)
+	ghPat := "github_" + "pat_" + strings.Repeat("A", 30)
+	glpatToken := "glpat" + "-" + strings.Repeat("A", 20)
+	awsAccessKey := "AKIA" + strings.Repeat("A", 16)
+	awsSessionKey := "ASIA" + strings.Repeat("B", 16)
+	googleAPIKey := "AIza" + strings.Repeat("A", 35)
+	pemHeader := "-----" + "BEGIN RSA PRIVATE KEY-----"
+	pemBlock := pemHeader + "\nMIIEpQIBAAKCAQEA7d3hXq\n" + "-----" + "END RSA PRIVATE KEY-----"
+	jwtToken := "eyJhbGciOiJIUzI1NiJ9" + ".eyJzdWIiOiIxMjM0NTY3ODkwIn0" + ".ab+cde/fghiJKLMNOPQRSTUVWXYZ0123456789"
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"GitHub classic PAT", "clone failed: token " + ghpToken + " is invalid", "clone failed: token [REDACTED] is invalid"},
+		{"GitHub fine-grained PAT", "auth with " + ghPat + " expired", "auth with [REDACTED] expired"},
+		{"GitLab PAT", "gitlab rejected " + glpatToken + " for user x", "gitlab rejected [REDACTED] for user x"},
+		{"AWS access key", "config uses " + awsAccessKey + " in region us-east-1", "config uses [REDACTED] in region us-east-1"},
+		{"AWS session key", "sts returned " + awsSessionKey + " for role deploy", "sts returned [REDACTED] for role deploy"},
+		{"Google API key", "maps call failed with " + googleAPIKey + " (quota)", "maps call failed with [REDACTED] (quota)"},
+		{"PEM header only", "cannot parse " + pemHeader + " in file", "cannot parse [REDACTED] in file"},
+		{"PEM full block", "key material: " + pemBlock + " (end)", "key material: [REDACTED] (end)"},
+		{"Bearer JWT with base64url + and /", "Authorization: Bearer " + jwtToken, "Authorization: Bearer [REDACTED]"},
+		{"Bearer base64 with + and /", "Authorization: Bearer abc+/def=ghi", "Authorization: Bearer [REDACTED]"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SanitizeString(tt.input)
+			if got != tt.expected {
+				t.Errorf("SanitizeString(%q) = %q; want %q", tt.input, got, tt.expected)
+			}
+		})
+	}
 }
