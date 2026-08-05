@@ -226,15 +226,19 @@ func (e *Engine) start(mode string, body func(ctx context.Context, runID string)
 	e.runID = runID
 	e.mode = mode
 	e.curStep = ""
+	// Snapshot the workspace mode while still holding the lock: e.wsInfo is
+	// written under the mutex by the run goroutine (setWorkspaceInfo) and
+	// nilled under the mutex by CleanupWorkspace (HTTP handler goroutines),
+	// so reading it after Unlock below would be a data race.
+	wsMode := "shared"
+	if e.wsInfo != nil {
+		wsMode = e.wsInfo.Mode
+	}
 	e.mu.Unlock()
 
 	e.publishState()
 
 	// Determine workspace mode for the ledger.
-	wsMode := "shared"
-	if e.wsInfo != nil {
-		wsMode = e.wsInfo.Mode
-	}
 	e.ledger.RunStarted(runID, e.cfg.Defaults.Cycle, mode, wsMode)
 
 	e.runWg.Add(1)
