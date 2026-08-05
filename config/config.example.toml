@@ -17,6 +17,10 @@ host = "127.0.0.1"          # ENV: SYMVIBE_HOST
 port = 4317                  # ENV: SYMVIBE_PORT
 open_browser = true          # auto-open the GUI on start; ENV: SYMVIBE_OPEN_BROWSER
 access = "loopback"          # loopback | lan | relay ; ENV: SYMVIBE_ACCESS
+# Cross-site origin guard: browser requests to the loopback board are rejected
+# with 403 unless their Origin matches allow_origin. "" keeps the guard fully
+# active; "*" disables it. Escape hatch for embedding the board elsewhere.
+# allow_origin = "https://app.example.com"   # ENV: SYMVIBE_ALLOW_ORIGIN
 
 # ----------------------------------------------------------------------------
 [auth]

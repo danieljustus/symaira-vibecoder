@@ -89,3 +89,29 @@ func TestLoadLocalConfigOverride(t *testing.T) {
 		t.Errorf("expected backend 'api' from local config override, got %q", cfg.Runner.Backend)
 	}
 }
+
+func TestLoadAllowOriginFromLocalConfig(t *testing.T) {
+	content := []byte("[server]\nallow_origin = \"https://app.example.com\"\n")
+	if err := os.WriteFile(".symvibe.toml", content, 0o644); err != nil {
+		t.Fatalf("failed to write temp local config: %v", err)
+	}
+	defer func() { _ = os.Remove(".symvibe.toml") }()
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if cfg.Server.AllowOrigin != "https://app.example.com" {
+		t.Errorf("expected allow_origin from local config override, got %q", cfg.Server.AllowOrigin)
+	}
+}
+
+func TestApplyEnvAllowOrigin(t *testing.T) {
+	t.Setenv("SYMVIBE_ALLOW_ORIGIN", "https://app.example.com")
+	cfg := Default()
+	applyEnv(cfg)
+	if cfg.Server.AllowOrigin != "https://app.example.com" {
+		t.Errorf("expected SYMVIBE_ALLOW_ORIGIN to set allow_origin, got %q", cfg.Server.AllowOrigin)
+	}
+}
