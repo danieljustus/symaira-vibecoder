@@ -29,6 +29,11 @@ public final class ActivityStore {
     public private(set) var lines: [LogLine] = []
     public private(set) var currentStepID: String?
 
+    /// Highest event `ts` already ingested. Replay merges skip anything at or
+    /// below it, so a reconnect can never re-append lines the store has seen
+    /// (including lines from a previous step that were cleared).
+    public private(set) var lastSeenTS: Int64 = 0
+
     private let maxLines = 500
 
     public init() {}
@@ -37,6 +42,9 @@ public final class ActivityStore {
 
     /// Append a new log/error event. Automatically filters by the active step.
     public func append(event: Event) {
+        if let ts = event.ts, ts > lastSeenTS {
+            lastSeenTS = ts
+        }
         guard let line = event.line, !line.isEmpty else { return }
         guard let stepID = event.stepID else { return }
 
@@ -53,6 +61,21 @@ public final class ActivityStore {
         // Trim to max
         if lines.count > maxLines {
             lines.removeFirst(lines.count - maxLines)
+        }
+    }
+
+    /// Merge a backfilled log snapshot (from `GET /api/logs`) into the store.
+    /// Entries already seen (by `ts`) are skipped; the rest are appended in
+    /// server order, which re-establishes the active step exactly like live
+    /// events would. Call once after each (re)connect.
+    public func mergeReplay(_ events: [Event]) {
+        for event in events {
+            // Skip anything already ingested (at or below the highest ts seen
+            // so far) — including lines from a previous step that were cleared.
+            if let ts = event.ts, ts <= lastSeenTS {
+                continue
+            }
+            append(event: event)
         }
     }
 
