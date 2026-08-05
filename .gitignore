@@ -35,3 +35,6 @@ docs/app-test/
 coverage.html
 # Generated Xcode workspace resolved state
 client/Symvibe.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# Git worktrees for agent cycles
+.worktrees/
