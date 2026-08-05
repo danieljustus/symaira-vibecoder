@@ -13,15 +13,8 @@ type logsResp struct {
 	Entries []engine.Event `json:"entries"`
 }
 
-// getLogs returns the engine's bounded log ring buffer so a reconnecting
-// client can backfill log/error events it missed while disconnected. The
-// buffer is memory-only and bounded (500 entries, matching the clients' own
-// caps); the run ledger remains the durable record. Clients merge the entries
-// into their local history by the ts field.
+// getLogs returns the engine's bounded log ring buffer so a reconnecting client
+// can backfill log/error events it missed while disconnected.
 func (s *Server) getLogs(w http.ResponseWriter, r *http.Request) {
-	entries := s.eng.Bus().Logs()
-	if entries == nil {
-		entries = []engine.Event{}
-	}
-	writeOK(w, logsResp{RunID: s.eng.State().RunID, Entries: entries})
+	writeOK(w, logsResp{RunID: s.eng.State().RunID, Entries: s.eng.Bus().Logs()})
 }
