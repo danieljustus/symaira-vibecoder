@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 // TestBusLogRingRetainsLogAndError verifies that log and error events published
@@ -94,4 +95,30 @@ func TestBusLogsSnapshotDetached(t *testing.T) {
 	if again[0].Line != "a" || again[1].Line != "b" {
 		t.Fatalf("snapshot must be detached, got %+v", again)
 	}
+}
+
+func TestBusSubscribePublishAndUnsubscribe(t *testing.T) {
+	b := NewBus()
+	id, ch := b.Subscribe()
+	b.Publish(Event{Type: "run_state", State: "running"})
+
+	select {
+	case ev := <-ch:
+		if ev.Type != "run_state" || ev.State != "running" || ev.TS == 0 {
+			t.Fatalf("unexpected published event: %+v", ev)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("subscriber did not receive published event")
+	}
+
+	b.Unsubscribe(id)
+	select {
+	case _, ok := <-ch:
+		if ok {
+			t.Fatal("unsubscribed channel still open")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("unsubscribe did not close channel")
+	}
+	b.Unsubscribe(id)
 }
