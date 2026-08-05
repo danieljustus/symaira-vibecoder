@@ -8,16 +8,15 @@
 
 ![Symaira VibeCoder social preview](docs/assets/social-preview.png)
 
-> Eine schlanke grafische Oberfläche, die deinen **Cycle** (Cleaning → Code
-> Review → Planung → Coden → PR-Check → GH Alerts → Pre-Release → Release)
-> autonom durchläuft — angetrieben von **opencode**, mit Modell-Auswahl pro
-> Kategorie *und* pro Schritt, Subagents und dezenten Status-Symbolen.
+> A slim graphical interface that runs your **cycle** (Cleaning → Code
+> Review → Planning → Coding → PR-Check → GH Alerts → Pre-Release → Release)
+> autonomously — powered by **opencode**, with per-category *and* per-step
+> model selection, subagents, and unobtrusive status glyphs.
 
-`symvibe` ist Teil des Symaira-Ökosystems: ein einzelnes, CGO-freies Go-Binary,
-das ein **Baukasten-Board** auf `127.0.0.1` serviert. Du baust deinen Cycle aus
-verschiebbaren Karten zusammen (hinzufügen / entfernen / bearbeiten / per
-Drag-&-Drop umsortieren) und sagst dem Tool, es soll loslaufen — der Rest
-passiert autonom.
+`symvibe` is part of the Symaira ecosystem: a single, CGO-free Go binary that
+serves a **Baukasten board** on `127.0.0.1`. You assemble your cycle from
+draggable cards (add / remove / edit / reorder via drag-&-drop) and tell the
+tool to run — everything else happens autonomously.
 
 ## Architecture
 
@@ -57,15 +56,15 @@ graph LR
    ○ pending  ◐ running  ✓ done  – skipped  ✕ failed  ⦸ blocked  ! review
 ```
 
-## Warum kein Fork von opencode?
+## Why no fork of opencode?
 
-`symvibe` **forkt opencode nicht** — es *steuert* es über ein austauschbares
-`Runner`-Interface. opencode liefert headless bereits alles, was nötig ist
-(`opencode run --format json`, `--agent/--model/--variant`, Sessions, Skills).
-Ein Fork würde bedeuten, die gesamte Provider-/Tool-/Session-Maschinerie zu
-erben und ewig zu pflegen. So gehört dir die *Vision*-Schicht (Cycle, Baukasten,
-Autonomie, Modell-Bindings) zu 100 %, während die Commodity-Agent-Runtime ein
-Peer bleibt. Ein Fork kann später jederzeit als weiterer Runner andocken.
+`symvibe` **does not fork opencode** — it *drives* it through a swappable
+`Runner` interface. opencode already provides everything needed headless
+(`opencode run --format json`, `--agent/--model/--variant`, sessions, skills).
+A fork would mean inheriting and maintaining the entire provider/tool/session
+machinery forever. This way you own 100 % of the *vision* layer (cycle,
+Baukasten, autonomy, model bindings), while the commodity agent runtime stays
+a peer. A fork can always be plugged in later as another runner.
 
 ## Installation
 
@@ -76,49 +75,49 @@ curl -fsSL https://raw.githubusercontent.com/danieljustus/symaira-vibecoder/main
 # Homebrew (requires the danieljustus/homebrew-tap repository)
 brew install danieljustus/tap/symvibe
 
-# aus dem Quellcode (Go 1.26+)
+# from source (Go 1.26+)
 make build && ./symvibe serve
 
-# oder direkt
+# or directly
 go install github.com/danieljustus/symaira-vibecoder/cmd/symvibe@latest
 symvibe serve
 ```
 
-### Runner-Backends
+### Runner backends
 
-symvibe treibt Coding-Agents über ein austauschbares `Runner`-Interface an.
-Welches Backend zum Einsatz kommt, wird über `runner.backend` in
-`~/.config/symvibe/config.toml` oder die Env-Variable `SYMVIBE_RUNNER_BACKEND`
-gesteuert.
+symvibe drives coding agents through a swappable `Runner` interface.
+The backend in use is selected via `runner.backend` in
+`~/.config/symvibe/config.toml` or the `SYMVIBE_RUNNER_BACKEND` environment
+variable.
 
-| Backend | Beschreibung | Voraussetzung |
-|---------|-------------|---------------|
-| `opencode` *(Default)* | Treibt [`opencode`](https://opencode.ai) headless über `opencode run --format json`. Volle Model-/Skill-/Agent-Kontrolle. | `opencode` auf PATH oder `opencode_bin` |
-| `api` | Direkte Anthropic-Claude-API — kein opencode nötig. | `api_key` oder `SYMVIBE_ANTHROPIC_API_KEY` |
-| `aider` | Treibt [aider](https://aider.chat) CLI headless (`--message`). | `aider` auf PATH oder `aider_bin` |
-| `claudecode` | Treibt Claude Code CLI headless (`-p`). | `claude` auf PATH oder `claude_code_bin` |
-| `cline` | Treibt [Cline](https://github.com/cline/cline) CLI headless. | `cline` auf PATH oder `cline_bin` |
-| `local_api` | Lokaler OpenAI-kompatibler Endpoint (Ollama, LM Studio, MLX). | `local_api_endpoint` (z.B. `http://localhost:11434/v1`) |
+| Backend | Description | Requirement |
+|---------|-------------|-------------|
+| `opencode` *(default)* | Drives [`opencode`](https://opencode.ai) headless via `opencode run --format json`. Full model/skill/agent control. | `opencode` on PATH or `opencode_bin` |
+| `api` | Direct Anthropic Claude API — no opencode needed. | `api_key` or `SYMVIBE_ANTHROPIC_API_KEY` |
+| `aider` | Drives the [aider](https://aider.chat) CLI headless (`--message`). | `aider` on PATH or `aider_bin` |
+| `claudecode` | Drives Claude Code CLI headless (`-p`). | `claude` on PATH or `claude_code_bin` |
+| `cline` | Drives the [Cline](https://github.com/cline/cline) CLI headless. | `cline` on PATH or `cline_bin` |
+| `local_api` | Local OpenAI-compatible endpoint (Ollama, LM Studio, MLX). | `local_api_endpoint` (e.g. `http://localhost:11434/v1`) |
 
-Ohne ausführbaren Backend ist das Board read-only.
+Without an executable backend the board is read-only.
 
-**Kurzbeispiele:**
+**Quick examples:**
 
 ```toml
 # ~/.config/symvibe/config.toml
 [runner]
-backend = "opencode"            # oder: api | aider | claudecode | cline | local_api
-opencode_bin = ""               # leer = auto-detect auf PATH
+backend = "opencode"            # or: api | aider | claudecode | cline | local_api
+opencode_bin = ""               # empty = auto-detect on PATH
 
-# Für api-Backend:
+# For the api backend:
 # backend = "api"
 # api_key = "sk-ant-..."
 
-# Für aider-Backend:
+# For the aider backend:
 # backend = "aider"
 # aider_bin = "/usr/local/bin/aider"
 
-# Für local_api-Backend (Ollama):
+# For the local_api backend (Ollama):
 # backend = "local_api"
 # local_api_endpoint = "http://localhost:11434/v1"
 # local_api_model = "llama3.1"
@@ -130,146 +129,145 @@ export SYMVIBE_RUNNER_BACKEND=api
 export SYMVIBE_ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**Voraussetzungen:**
+**Requirements:**
 
-- **git** ist erforderlich; **gh** ist optional (nur für GitHub-Workflows).
-- `symvibe doctor` prüft alle konfigurierten Backends und zeigt Install-Hinweise.
+- **git** is required; **gh** is optional (only for GitHub workflows).
+- `symvibe doctor` checks all configured backends and shows install hints.
 
-## Nutzung
+## Usage
 
 ```bash
-symvibe serve            # Board starten und im Browser öffnen
-symvibe serve --no-open  # ohne Browser
-symvibe serve --dir ~/code/mein-repo   # Arbeitsverzeichnis des Cycles
-symvibe doctor           # opencode/git/gh prüfen + Modell-IDs gegen `opencode models` abgleichen
-symvibe pair             # QR-Pairing-Code für ein Remote-Gerät (LAN/Relay-Modus) generieren
+symvibe serve            # start the board and open it in the browser
+symvibe serve --no-open  # without opening the browser
+symvibe serve --dir ~/code/my-repo   # working directory of the cycle
+symvibe doctor           # check opencode/git/gh + compare model IDs against `opencode models`
+symvibe pair             # generate a QR pairing code for a remote device (LAN/relay mode)
 symvibe version
 ```
 
-Im Board:
+In the board:
 
-- **Run Cycle** — läuft autonom ab der aktuellen Position durch (`NextRunnable`).
-- **Run only this** (▶ auf einer Karte) — nur diesen Schritt.
-- **Pause / Resume / Cancel** — Lauf steuern.
-- Karten **bearbeiten**: Skill binden (`$00-sync` …), Kategorie (Modell-Binding)
-  wählen, an/aus schalten, löschen, duplizieren, per Drag-&-Drop verschieben.
-- Live: das Status-Symbol jeder Karte wechselt in Echtzeit (SSE), das
-  Activity-Panel zeigt den Event-Stream des laufenden Schritts.
+- **Run Cycle** — runs autonomously from the current position onwards (`NextRunnable`).
+- **Run only this** (▶ on a card) — run only that step.
+- **Pause / Resume / Cancel** — control the run.
+- **Edit** cards: bind a skill (`$00-sync` …), choose a category (model binding),
+  enable/disable, delete, duplicate, move via drag-&-drop.
+- Live: every card's status glyph updates in real time (SSE), and the
+  activity panel shows the event stream of the running step.
 
-## Konfiguration
+## Configuration
 
-Optional unter `~/.config/symvibe/config.toml` — siehe
-[`config/config.example.toml`](config/config.example.toml). Ohne Datei laufen
-sinnvolle Defaults (gespiegelt aus `oh-my-openagent.json`).
+Optional, at `~/.config/symvibe/config.toml` — see
+[`config/config.example.toml`](config/config.example.toml). Without a file,
+sensible defaults are used (mirrored from `oh-my-openagent.json`).
 
-- **Modell-Registry + Kategorie-Bindings** (`ultrabrain`, `deep`, `quick`,
-  `git`, `writing`, `unspecified-*`) mit `temperature`, `variant`,
+- **Model registry + category bindings** (`ultrabrain`, `deep`, `quick`,
+  `git`, `writing`, `unspecified-*`) with `temperature`, `variant`,
   `fallback_models`.
-- **Pro-Schritt-Override** schlägt die Kategorie (`[phases.steps.model_override]`
-  im Cycle).
-- Auflösung: **Schritt-Override > Kategorie > Default**; bei Fehler wird die
-  `fallback_models`-Kette abgewandert.
-- Alle Werte via `SYMVIBE_*` Env überschreibbar (`SYMVIBE_PORT`,
+- **Per-step override** beats the category (`[phases.steps.model_override]`
+  in the cycle).
+- Resolution: **step override > category > default**; on failure the
+  `fallback_models` chain is walked down.
+- Every value can be overridden via `SYMVIBE_*` env vars (`SYMVIBE_PORT`,
   `SYMVIBE_OPENCODE_BIN`, `SYMVIBE_WORKING_DIR`, …).
 
-Der Cycle (Baukasten) liegt editierbar unter
-`~/.local/share/symvibe/cycles/<id>.toml`; der Seed stammt aus
-[`config/seed-cycle.toml`](config/seed-cycle.toml) (8 Phasen aus
+The cycle (Baukasten) is editable at
+`~/.local/share/symvibe/cycles/<id>.toml`; the seed comes from
+[`config/seed-cycle.toml`](config/seed-cycle.toml) (8 phases from
 `docs/Grundidee.csv`).
 
-## Backend-Override
+## Backend override
 
-Der Runner-Backend lässt sich auf drei Ebenen konfigurieren — jede höhere
-Ebene schlägt die niedrigere:
+The runner backend can be configured on three levels — each higher level
+beats the lower one:
 
-1. **Global** — `~/.config/symvibe/config.toml` oder `SYMVIBE_RUNNER_BACKEND`
-2. **Projektweit** — `.symvibe.toml` im Projektroot (gleiches TOML-Schema)
-3. **Pro Schritt** — `backend_override` im Cycle-TOML
+1. **Global** — `~/.config/symvibe/config.toml` or `SYMVIBE_RUNNER_BACKEND`
+2. **Project-wide** — `.symvibe.toml` in the project root (same TOML schema)
+3. **Per step** — `backend_override` in the cycle TOML
 
 ```toml
-# Projektweiter Override: .symvibe.toml im Repo-Root
+# Project-wide override: .symvibe.toml in the repo root
 [runner]
-backend = "aider"       # dieses Projekt nutzt aider statt opencode
+backend = "aider"       # this project uses aider instead of opencode
 ```
 
 ```toml
-# Pro-Schritt-Override im Cycle (cycles/<id>.toml)
+# Per-step override in the cycle (cycles/<id>.toml)
 [[phases.steps]]
 id = "1.1"
 name = "Sync"
-backend_override = "local_api"   # diesen Schritt über lokales API laufen lassen
+backend_override = "local_api"   # run this step through the local API
 ```
 
-**Auflösungsreihenfolge:** Schritt-Override > Projekt-Override > Global >
-Built-in Default (`opencode`). Bei einem Fehler wird die
-`fallback_models`-Kette abgewandert (siehe Konfiguration).
+**Resolution order:** step override > project override > global >
+built-in default (`opencode`). On failure, the
+`fallback_models` chain is walked down (see Configuration).
 
-## Autonomie
+## Autonomy
 
-- **Weiß, wo es ist:** der Scheduler liest den *persistierten* Status jedes
-  Schritts; done/skipped werden übersprungen, beim ersten Problem
-  (failed/blocked) hält der Lauf an. Ein Absturz mitten im Schritt wird beim
-  Resume zurückgesetzt.
-- **Weiß, was zu überspringen ist:** ein Schritt kann eine
-  `auto_skip = { sensor, when }`-Regel tragen (z. B. `open-issues == 0` →
-  Coden-Schritt überspringen). Sensoren sind billige Proben (`git-dirty`,
+- **Knows where it is:** the scheduler reads the *persisted* status of every
+  step; done/skipped steps are skipped, and the run halts at the first problem
+  (failed/blocked). A crash mid-step is reset on resume.
+- **Knows what to skip:** a step can carry an
+  `auto_skip = { sensor, when }` rule (e.g. `open-issues == 0` →
+  skip the coding step). Sensors are cheap probes (`git-dirty`,
   `open-issues`, `open-prs`).
 
-## Sicherheit
+## Security
 
-Loopback-only, unauthentifiziert — nur lokal nutzen. *Run* lässt opencode
-echten Code gegen dein Repo ausführen. Details: [SECURITY.md](SECURITY.md).
+Loopback-only, unauthenticated — use locally only. *Run* lets opencode
+execute real code against your repo. Details: [SECURITY.md](SECURITY.md).
 
-## Architektur
+## Architecture
 
-Go-Core (`cmd/symvibe`, `internal/{config,engine,runner,server,version}`) +
-eingebettetes Board (`web/`). Siehe [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Go core (`cmd/symvibe`, `internal/{config,engine,runner,server,version}`) +
+embedded board (`web/`). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## iOS / macOS-Client
+## iOS / macOS client
 
-Ein SwiftPM-Projekt liegt unter `client/`. `SymvibeKit` enthält REST-Client,
-SSE-Parser, TLS-Pinning und `Codable`-Modelle, die 1:1 den Go-Typen folgen.
+A SwiftPM project lives under `client/`. `SymvibeKit` contains the REST client,
+SSE parser, TLS pinning and `Codable` models that follow the Go types 1:1.
 
-Der macOS-Client (`SymvibeApp`) setzt auf **symaira-appkit** auf und nutzt:
+The macOS client (`SymvibeApp`) builds on **symaira-appkit** and uses:
 
-- `SymairaToolKit` zum Auffinden des gebündelten `symvibe`-Binärs in
-  `Contents/Resources` oder auf dem Entwicklungs-`PATH` (`EngineManager`).
-- `SymairaKeychain` zum sicheren Speichern von Geräte-Pairing-Tokens
+- `SymairaToolKit` to locate the bundled `symvibe` binary in
+  `Contents/Resources` or on the development `PATH` (`EngineManager`).
+- `SymairaKeychain` for securely storing device pairing tokens
   (`KeychainHelper`).
 
 ```bash
 cd client
 swift build                # macOS
-# iOS: in Xcode öffnen oder xcodebuild mit iOS-Simulator-Destination
+# iOS: open in Xcode or use xcodebuild with an iOS simulator destination
 ```
 
-Der Client benötigt iOS 17 / macOS 14.
+The client requires iOS 17 / macOS 14.
 
-## Rezept-Runner (Recipe API)
+## Recipe runner (Recipe API)
 
-Neben dem interaktiven Board stellt symvibe einen **versionierten Rezept-Runner**
-über `POST /api/recipe/run` bereit. Ein Rezept (`RecipeRequest`) beschreibt:
+In addition to the interactive board, symvibe provides a **versioned recipe runner**
+via `POST /api/recipe/run`. A recipe (`RecipeRequest`) describes:
 
-- `workspace` — absoluter Pfad zum Git-Repository
-- `prompt` — Anweisung, die an das konfigurierte Runner-Backend geschickt wird
-- `write_cap` — maximal erlaubte Schreibweite: `none`, `workspace` oder `full`
-- `tool_allow_list` — optional eingeschränkte Tool-Namen
-- `trace_path` — optionaler relativer Pfad für einen replaybaren Trace
-- `review_mode` — wenn `true`, wird der Workspace nach dem Lauf auf den
-  Ausgangszustand zurückgesetzt, nachdem ein vorgeschlagener Diff erfasst wurde
+- `workspace` — absolute path to the git repository
+- `prompt` — instruction sent to the configured runner backend
+- `write_cap` — maximum allowed write scope: `none`, `workspace` or `full`
+- `tool_allow_list` — optionally restricted tool names
+- `trace_path` — optional relative path for a replayable trace
+- `review_mode` — if `true`, the workspace is reset to its original state
+  after the run, once a proposed diff has been captured
 
-Die Antwort (`RecipeResult`) enthält Status, Dauer, Backend, Trace und den
-vorgeschlagenen Diff. Das Endpoint ist für Automation / MCP-Caller gedacht,
-beispielsweise um Vault-Workflows oder wiederholbare Codierungstasks auszuführen.
+The response (`RecipeResult`) contains status, duration, backend, trace and the
+proposed diff. The endpoint is intended for automation / MCP callers, for
+example to run vault workflows or repeatable coding tasks.
 
-## Coverage-Daten
+## Coverage data
 
-Die CI publiziert bei jedem Push auf `main` die Gesamt-Coverage als
-`coverage.json` (inkl. Threshold und Commit-SHA) sowie `badge.json`/`badge.svg`
-auf den **orphan Branch `coverage-data`** (Job `publish-coverage-data` in
-`.github/workflows/ci.yml`). Dieser Branch ist maschinell gepflegt, wird nie
-gemergt und ist **von der Branch-Cleanup-Policy ausgenommen**.
+CI publishes the overall coverage on every push to `main` as
+`coverage.json` (including threshold and commit SHA) plus `badge.json`/`badge.svg`
+to the **orphan branch `coverage-data`** (job `publish-coverage-data` in
+`.github/workflows/ci.yml`). This branch is machine-maintained, never
+merged, and **exempt from the branch-cleanup policy**.
 
-## Lizenz
+## License
 
-Apache-2.0 — siehe [LICENSE](LICENSE).
+Apache-2.0 — see [LICENSE](LICENSE).
