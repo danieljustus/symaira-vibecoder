@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-08-05
+
+### Added
+
+- **Reconnectable activity logs** — the engine retains a bounded ring buffer and exposes `GET /api/logs`, while the macOS client and web board replay missed entries after reconnecting (#137, #152)
+
+### Changed
+
+- CI now boots the real server and verifies the embedded board and API before completing (#136, #151)
+- README documentation is now consistently available in English (#145, #154)
+
+### Fixed
+
+- Run-control startup now snapshots workspace mode under the engine mutex, removing a race with concurrent workspace cleanup (#141, #149)
+- Runner output redaction now covers GitHub, GitLab, AWS, Google tokens and PEM private keys, and preserves complete Bearer-token matches (#140, #148)
+- Loopback browser requests from another site are rejected by default, with an explicit origin allow-list escape hatch (#135, #147)
+
 ## [0.7.0] - 2026-07-28
 
 ### Added
