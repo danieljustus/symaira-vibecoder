@@ -43,11 +43,14 @@ func (s *Server) SetTokenStore(store auth.TokenStore) { s.store = store }
 func (s *Server) SetDevices(d *devices.Registry)      { s.devices = d }
 
 func (s *Server) Handler() http.Handler {
-	if s.store == nil {
-		return s.mux
+	// The origin guard runs in front of the auth middleware and applies in
+	// every access mode; it is orthogonal to the Bearer-token gate.
+	h := http.Handler(auth.OriginGuard(s.mux, s.cfg.Server.AllowOrigin))
+	if s.store != nil {
+		bypass := s.cfg.Server.Access == "" || s.cfg.Server.Access == "loopback"
+		h = auth.Middleware(h, s.store, bypass)
 	}
-	bypass := s.cfg.Server.Access == "" || s.cfg.Server.Access == "loopback"
-	return auth.Middleware(s.mux, s.store, bypass)
+	return h
 }
 
 func (s *Server) routes() {
