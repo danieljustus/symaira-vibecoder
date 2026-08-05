@@ -43,6 +43,10 @@ type ServerConfig struct {
 	Access          string `toml:"access"`            // loopback | lan | relay
 	MulticastDNS    bool   `toml:"multicast_dns"`     // advertise _symvibe._tcp in lan mode
 	LibraryIndexURL string `toml:"library_index_url"` // community template library index; empty → built-in default
+	// AllowOrigin is an escape hatch for embedding the board elsewhere:
+	// requests whose Origin matches it bypass the cross-site origin guard
+	// ("" = guard fully active, "*" = disabled). See internal/auth.OriginGuard.
+	AllowOrigin string `toml:"allow_origin"`
 }
 
 type AuthConfig struct {
@@ -185,6 +189,9 @@ func applyEnv(c *Config) {
 	}
 	if v := os.Getenv("SYMVIBE_ACCESS"); v != "" {
 		c.Server.Access = v
+	}
+	if v := os.Getenv("SYMVIBE_ALLOW_ORIGIN"); v != "" {
+		c.Server.AllowOrigin = v
 	}
 	if v := os.Getenv("SYMVIBE_RUNNER_BACKEND"); v != "" {
 		c.Runner.Backend = v
