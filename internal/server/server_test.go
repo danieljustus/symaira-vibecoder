@@ -87,14 +87,53 @@ func TestHandlerWithoutTokenStore(t *testing.T) {
 
 	s := New(cfg, eng, dist)
 
-	handler := s.Handler()
-	if handler == nil {
+	h := s.Handler()
+	if h == nil {
 		t.Fatal("Handler should return a non-nil handler")
 	}
 
-	// Without token store, Handler returns the mux directly.
-	if handler != s.mux {
-		t.Fatal("Handler should return the mux when no token store is set")
+	// Without a token store the origin guard still applies: a cross-site
+	// browser request (Origin ≠ loopback Host) is rejected with 403.
+	req := httptest.NewRequest("POST", "/api/run", nil)
+	req.Host = "127.0.0.1:4317"
+	req.Header.Set("Origin", "https://evil.example")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("want 403 for cross-site request without token store, got %d", rr.Code)
+	}
+
+	// Plain requests (no Origin header) pass straight through to the mux.
+	req2 := httptest.NewRequest("GET", "/api/version", nil)
+	rr2 := httptest.NewRecorder()
+	h.ServeHTTP(rr2, req2)
+	if rr2.Code != http.StatusOK {
+		t.Fatalf("want 200 for plain request without token store, got %d", rr2.Code)
+	}
+}
+
+func TestHandlerAllowOriginEscapeHatch(t *testing.T) {
+	cfg := config.Default()
+	cfg.Server.AllowOrigin = "https://app.example.com"
+	bus := engine.NewBus()
+	run := &mockRunner{available: true}
+	eng := engine.New(cfg, config.NewResolver(cfg), run, bus)
+
+	dist := fstest.MapFS{
+		"index.html": {Data: []byte("<html></html>")},
+	}
+
+	s := New(cfg, eng, dist)
+	h := s.Handler()
+
+	// Origin matching allow_origin passes even though Host is loopback.
+	req := httptest.NewRequest("GET", "/api/version", nil)
+	req.Host = "127.0.0.1:4317"
+	req.Header.Set("Origin", "https://app.example.com")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("want 200 for allow_origin request, got %d", rr.Code)
 	}
 }
 
