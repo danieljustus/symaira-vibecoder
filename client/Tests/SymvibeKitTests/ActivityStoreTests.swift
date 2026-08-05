@@ -139,4 +139,71 @@ final class ActivityStoreTests: XCTestCase {
 
         XCTAssertNotEqual(store.lines[0].id, store.lines[1].id)
     }
+
+    // MARK: - Replay merge
+
+    func testMergeReplayBackfillsUnseenEvents() {
+        let store = ActivityStore()
+        let seen = Event(type: "log", stepID: "step-1", line: "seen", ts: 100)
+        let missed = Event(type: "log", stepID: "step-1", line: "missed", ts: 200)
+        store.append(event: seen)
+
+        store.mergeReplay([seen, missed])
+
+        // The already-seen event must not be re-appended.
+        XCTAssertEqual(store.lines.map(\.text), ["seen", "missed"])
+        XCTAssertEqual(store.currentStepID, "step-1")
+    }
+
+    func testMergeReplaySkipsEverythingSeen() {
+        let store = ActivityStore()
+        let events = (1...3).map { Event(type: "log", stepID: "step-1", line: "line \($0)", ts: Int64($0 * 100)) }
+        store.mergeReplay(events)
+
+        store.mergeReplay(events)
+
+        XCTAssertEqual(store.lines.count, 3)
+        XCTAssertEqual(store.lastSeenTS, 300)
+    }
+
+    func testMergeReplayDoesNotResurrectClearedStep() {
+        let store = ActivityStore()
+        store.append(event: Event(type: "log", stepID: "step-1", line: "old", ts: 100))
+        store.clear()
+
+        // Replay must not re-add the cleared step-1 line, but must merge the
+        // newer step-2 line (the store only ever shows the current step).
+        store.mergeReplay([
+            Event(type: "log", stepID: "step-1", line: "old", ts: 100),
+            Event(type: "log", stepID: "step-2", line: "new", ts: 200),
+        ])
+
+        XCTAssertEqual(store.lines.map(\.text), ["new"])
+        XCTAssertEqual(store.currentStepID, "step-2")
+    }
+
+    func testMergeReplayOrdersByServerSequence() {
+        let store = ActivityStore()
+        // Ring order (oldest first) must be preserved through the merge.
+        store.mergeReplay([
+            Event(type: "log", stepID: "step-1", line: "first", ts: 100),
+            Event(type: "log", stepID: "step-1", line: "second", ts: 200),
+            Event(type: "error", stepID: "step-1", line: "boom", ts: 300),
+        ])
+
+        XCTAssertEqual(store.lines.map(\.text), ["first", "second", "boom"])
+        XCTAssertEqual(store.lines.map(\.kind), [.log, .log, .error])
+        XCTAssertEqual(store.lastSeenTS, 300)
+    }
+
+    func testMergeReplayWithoutTSAlwaysAppends() {
+        let store = ActivityStore()
+        // Events without ts (legacy/edge case) are not deduped — matching the
+        // live path where they were always appended.
+        let e = Event(type: "log", stepID: "step-1", line: "output")
+        store.mergeReplay([e])
+        store.mergeReplay([e])
+
+        XCTAssertEqual(store.lines.count, 2)
+    }
 }

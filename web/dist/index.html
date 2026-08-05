@@ -2681,6 +2681,10 @@ async function applyStepChanges() {
 /* ---------------- EventSource (SSE) Integration ---------------- */
 function connectSSE(){
   const es = new EventSource("/events");
+  // Backfill: after every (re)connect (and on first open), pull the server's
+  // bounded log buffer and merge entries we haven't seen yet (by ts).
+  es.onopen = () => { replayLogs(); };
+
   es.addEventListener("run_state", e => {
     const d = JSON.parse(e.data);
     runState = {state:d.state, run_id:d.run_id, current_step:d.step_id};
@@ -2706,9 +2710,39 @@ function connectSSE(){
   es.addEventListener("error", e => {
     try {
       const d = JSON.parse(e.data);
-      appendLog({kind:"error", line:d.line});
+      appendLog({kind:"error", line:d.line, ts:d.ts});
     } catch(_) {}
   });
+}
+
+/* Replay backfill: merge the server's bounded log buffer (GET /api/logs) into
+ * local history after each (re)connect. Entries already present (same ts) are
+ * skipped; new ones are sorted into ts order so older missed lines land above
+ * the live tail instead of below it. */
+function replayLogs(){
+  fetch("/api/logs")
+    .then(r => r.json())
+    .then(d => {
+      const have = new Set();
+      for (const l of logData) if (l.ts) have.add(l.ts);
+      let added = 0;
+      for (const ev of (d.entries || [])) {
+        if (!ev.ts || have.has(ev.ts)) continue;
+        have.add(ev.ts);
+        logData.push(ev);
+        added++;
+      }
+      if (added === 0) return;
+      logData.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      if (logData.length > 500) logData.splice(0, logData.length - 500);
+      const last = logData[logData.length - 1];
+      if (last && last.step_id && last.step_id !== curFeedStep) {
+        curFeedStep = last.step_id;
+        $("#feedStep").textContent = "· " + last.step_id;
+      }
+      renderLogs();
+    })
+    .catch(() => { /* server offline — the SSE reconnect will retry */ });
 }
 
 function applyStatus(stepId, status){

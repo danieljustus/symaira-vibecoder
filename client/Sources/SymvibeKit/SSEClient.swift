@@ -85,6 +85,38 @@ public actor SSEClient {
         return request
     }
 
+    // MARK: - Log replay
+
+    /// Snapshot returned by `GET /api/logs`: the current run id plus the
+    /// server's bounded log/error replay buffer (oldest first).
+    public struct LogSnapshot: Codable, Sendable {
+        public let runID: String?
+        public let entries: [Event]
+
+        public init(runID: String?, entries: [Event]) {
+            self.runID = runID
+            self.entries = entries
+        }
+    }
+
+    /// Fetches the server's bounded log ring buffer (`GET /api/logs`) so a
+    /// reconnecting client can backfill log/error events it missed while
+    /// disconnected. Call once after each (re)connect and merge the entries
+    /// into local history by their `ts` field.
+    public func fetchLogs() async throws -> LogSnapshot {
+        let url = baseURL.appendingPathComponent("/api/logs")
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 30
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw SymvibeError.http(status: (response as? HTTPURLResponse)?.statusCode ?? 0, body: "")
+        }
+        return try decoder.decode(LogSnapshot.self, from: data)
+    }
+
     private func parseEvent(_ lines: [String]) -> Event? {
         let data = lines.joined(separator: "\n")
         guard !data.isEmpty else { return nil }

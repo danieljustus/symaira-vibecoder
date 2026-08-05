@@ -85,6 +85,9 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/run/step", s.runStep)
 	m.HandleFunc("POST /api/run/control", s.runControl)
 
+	// Log replay for reconnecting clients.
+	m.HandleFunc("GET /api/logs", s.getLogs)
+
 	// Recipe runner (vault automation).
 	m.HandleFunc("POST /api/recipe/run", s.recipeRun)
 

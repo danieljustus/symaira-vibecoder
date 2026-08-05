@@ -121,6 +121,11 @@ public final class BoardStore {
             var retryDelay: Duration = .seconds(1)
             while !Task.isCancelled {
                 do {
+                    // Backfill: after every (re)connect, fetch the server's
+                    // bounded log buffer and merge events missed while
+                    // disconnected. ActivityStore dedupes by ts, so re-merging
+                    // on a retry is idempotent.
+                    await self.replayLogs()
                     let stream = await sseClient.events(reconnect: false)
                     for try await event in stream {
                         if Task.isCancelled { break }
@@ -147,6 +152,21 @@ public final class BoardStore {
     }
 
     // MARK: - Event Handling
+
+    /// Fetches `GET /api/logs` and merges missed log/error events into the
+    /// activity store. Failures are swallowed — the SSE reconnect loop retries
+    /// the whole cycle, and the ts-based dedupe in ActivityStore makes
+    /// re-merging idempotent.
+    private func replayLogs() async {
+        guard let sseClient, let activityStore else { return }
+        do {
+            let snapshot = try await sseClient.fetchLogs()
+            activityStore.mergeReplay(snapshot.entries)
+        } catch {
+            // Not fatal: live SSE events still flow; the next reconnect
+            // attempt will retry the backfill.
+        }
+    }
 
     func handleEvent(_ event: Event) async {
         switch event.type {

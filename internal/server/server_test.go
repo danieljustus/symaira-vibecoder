@@ -161,6 +161,7 @@ func TestRoutesRegistered(t *testing.T) {
 		{"GET", "/api/categories", http.StatusOK},
 		{"GET", "/api/doctor", http.StatusOK},
 		{"GET", "/api/runstate", http.StatusOK},
+		{"GET", "/api/logs", http.StatusOK},
 		{"POST", "/api/run/control", http.StatusBadRequest},
 		{"GET", "/", http.StatusOK},
 	}
