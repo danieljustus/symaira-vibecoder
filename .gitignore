@@ -33,6 +33,10 @@ docs/app-test/
 .omo/run-continuation/
 .omo/notepads/
 coverage.html
+# Generated coverage badge and mutation-test logs
+badge.json
+badge.svg
+gremlins.log
 # Generated Xcode workspace resolved state
 client/Symvibe.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
